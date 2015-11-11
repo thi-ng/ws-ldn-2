@@ -5,12 +5,13 @@
                   :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies  [[org.clojure/clojure "1.7.0"]
                   [org.clojure/clojurescript "1.7.170"]
+                  [org.clojure/core.async "0.2.371"]
                   [thi.ng/geom "0.0.908"]
                   [thi.ng/fabric "0.0.376"]
-                  [cljsjs/leaflet "0.7.3-4"]
                   [cljsjs/codemirror "5.7.0-3"]
                   [reagent "0.5.1"]
-                  [cljs-log "0.2.2"]]
+                  [cljs-log "0.2.2"]
+                  [criterium "0.4.3"]]
 
   :plugins       [[lein-figwheel "0.5.0-SNAPSHOT"]
                   [lein-cljsbuild "1.1.1"]
@@ -23,7 +24,7 @@
   :profiles      {:prod {:env {:log-level 4}}}
 
   :cljsbuild     {:builds [{:id           "day1"
-                            :source-paths ["src/cljs" "dev-src/day1"]
+                            :source-paths ["src/cljs"]
                             :compiler     {:main                 ws-ldn-2.day1.core
                                            :optimizations        :none
                                            :asset-path           "js/out"
