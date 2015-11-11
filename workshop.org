@@ -1,0 +1,94 @@
+* WS-LDN-2 workshop notes
+
+** Linked Data
+*** Resource Description Framework (RDF)
+
+- http://www.w3.org/TR/rdf11-primer/
+- http://www.w3.org/TR/rdf11-concepts/
+- http://www.w3.org/TR/rdf-schema/
+
+**** RDFa
+
+- http://www.w3.org/TR/rdfa-primer/
+- https://developers.google.com/structured-data/
+
+**** Vocabularies
+
+- http://schema.org/
+- http://lov.okfn.org/dataset/lov
+- http://prefix.cc
+
+**** Tools
+
+- http://www.w3.org/RDF/Validator/
+- https://developers.google.com/structured-data/testing-tool/
+
+*** SPARQL
+
+- https://www.youtube.com/watch?v=FvGndkpa4K0
+- http://www.w3.org/TR/sparql11-overview/
+- http://www.w3.org/TR/sparql11-query/
+- http://www.w3.org/TR/sparql11-protocol/
+- http://www.cambridgesemantics.com/semantic-university/sparql-by-example
+
+**** Query endpoints & examples
+
+***** UK ONS
+
+- http://statistics.data.gov.uk/flint-sparql
+
+#+BEGIN_SRC sparql
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX sdef: <http://statistics.data.gov.uk/def/>
+  PREFIX sg: <http://statistics.data.gov.uk/def/statistical-geography#>
+  PREFIX sid: <http://statistics.data.gov.uk/id/statistical-geography/>
+
+  CONSTRUCT {
+    ?item rdfs:label ?id ;
+          sg:officialName ?name ;
+          sg:hasExteriorLatLongPolygon ?poly .
+  }
+  WHERE {
+    ?item a sdef:statistical-geography ;
+          rdfs:label ?id ;
+          sg:officialname ?name;
+          sg:parentcode sid:E12000007 ;
+          sg:hasExteriorLatLongPolygon ?poly .
+  }
+  ORDER BY ASC(?id)
+#+END_SRC
+
+***** DBpedia
+
+- http://dbpedia.org/sparql
+
+#+BEGIN_SRC sparql
+  PREFIX dbo: <http://dbpedia.org/ontology/>
+  PREFIX dbr: <http://dbpedia.org/resource/>
+
+  SELECT DISTINCT ?p
+  WHERE {
+    ?p a dbo:MusicalArtist ;
+    dbo:genre dbr:Techno ;
+    dbo:birthPlace ?bp .
+    ?bp dbo:country dbr:Germany
+  }
+#+END_SRC
+
+*** Datastores
+
+- http://data.gov.uk
+- https://www.wikidata.org
+- http://dbpedia.org
+  - http://wiki.dbpedia.org/Downloads2015-04
+
+*** Books
+
+- http://linkeddatabook.com/editions/1.0/
+- http://learningsparql.com/
+
+*** Tools
+
+- http://protege.stanford.edu/
+- http://jena.apache.org
