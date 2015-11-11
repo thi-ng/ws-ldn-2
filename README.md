@@ -6,6 +6,29 @@ This repo contains a subset of commented examples created during the workshop.
 
 [Workshop notes & references](workshop.org)
 
+## Overview
+
+- Brief review of Clojure concepts
+- Processing data in parallel (reducers, fold) and/or concurrently (promises, delays, agents, futures, agents)
+- Organizing code around [core.async](https://github.com/clojure/core.async) channels
+- Brief graph theory & representations in code form
+- Introduction to [thi.ng/fabric](thi.ng/fabric) compute graph
+- Using graphs as caching network to compute data efficiently
+- Linked Data (LD) introduction & common vocabularies
+- Mapping CSV data to graphs using LD vocabularies
+- Defining macros to simplify boilerplate & create a DSL
+- Importing & querying Linked Data sets/graphs using a DSL
+- Using Graphviz to debug queries & LD datasets
+- Introduction to component driven workflow
+- Setting up a simple LD server (using [components](https://github.com/stuartsierra/component))
+- Building a UI with [Figwheel](https://github.com/bhauman/lein-figwheel), [Reagent](http://reagent-project.github.io/) (and [React.js](http://facebook.github.io/react/))
+- Representing & transforming DOM fragments in Clojure(script)
+- Event handling & event busses using core.async
+- Routing UI state changes to view components, adding responsive features
+- WebGL introduction, Clojurescript examples
+- [Visualizing data in SVG](http://thi.ng/geom) & WebGL
+- Composing WebGL shaders from [re-usable fragments](http://thi.ng/shadergraph)
+
 ## Day 1 namespaces
 
 TBD

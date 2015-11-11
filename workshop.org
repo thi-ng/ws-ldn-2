@@ -1,5 +1,22 @@
 * WS-LDN-2 workshop notes
 
+** Parallel processing
+*** pmap
+
+Like =map=, but parallel. Like map, except f is applied in parallel.
+Only useful for computationally intensive functions where the time of
+fn dominates the coordination overhead
+
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/pmap/
+
+*** Reducers
+
+- http://clojure.com/blog/2012/05/08/reducers-a-library-and-model-for-collection-processing.html
+- http://clojure.com/blog/2012/05/15/anatomy-of-reducer.html
+- http://ianrumford.github.io/blog/2013/08/25/some-trivial-examples-of-using-clojure-reducers/
+- http://adambard.com/blog/clojure-reducers-for-mortals/
+- http://stackoverflow.com/a/33467619/294515
+
 ** Async
 
 *** delay
@@ -7,6 +24,14 @@
 Delays execution of body until needed / deref'd
 
 - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/delay/
+
+*** agent
+
+Update value with given fn in separate thread
+
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/agent/
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/send/
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/send-off/
 
 *** future
 
@@ -42,6 +67,8 @@ Advanced core.async operations:
 
 - https://yobriefca.se/blog/2014/06/01/combining-and-controlling-channels-with-core-dot-asyncs-merge-and-mix/
 - https://yobriefca.se/blog/2014/06/04/publish-and-subscribe-with-core-dot-asyncs-pub-and-sub/
+- http://blog.lauripesonen.com/go-concurrency-patterns-in-core-async-pipelines-and-cancellation/
+- http://stuartsierra.com/2013/12/08/parallel-processing-with-core-async
 
 **** CSP
 
