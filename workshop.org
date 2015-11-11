@@ -1,5 +1,56 @@
 * WS-LDN-2 workshop notes
 
+** Async
+
+*** delay
+
+Delays execution of body until needed / deref'd
+
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/delay/
+
+*** future
+
+Invokes body in new thread, when obtaining result blocks calling
+thread until future is realized
+
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/future/
+
+*** promise / deliver
+
+Returns a promise object that can be deref'd, and set, once only, with deliver.
+
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/promise/
+
+*** realized?
+
+- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/realized%3F/
+
+*** core.async
+
+- https://github.com/clojure/core.async
+- https://swannodette.github.io/2013/07/12/communicating-sequential-processes/
+- http://www.braveclojure.com/core-async/
+- http://www.core-async.info/
+- http://rigsomelight.com/2013/08/12/clojurescript-core-async-dots-game.html
+- https://martintrojer.github.io/clojure/2013/07/07/coreasync-and-blocking-io/
+
+Advanced core.async operations:
+
+- https://yobriefca.se/blog/2014/06/01/combining-and-controlling-channels-with-core-dot-asyncs-merge-and-mix/
+- https://yobriefca.se/blog/2014/06/04/publish-and-subscribe-with-core-dot-asyncs-pub-and-sub/
+
+**** CSP
+
+- https://en.wikipedia.org/wiki/Communicating_sequential_processes
+- http://usingcsp.com/cspbook.pdf
+
+*** Aleph & Manifold
+
+- http://aleph.io/
+- http://ideolalia.com/aleph/literate.html
+- https://github.com/ztellman/aleph
+- https://github.com/ztellman/manifold
+
 ** Linked Data
 *** Resource Description Framework (RDF)
 
@@ -92,3 +143,20 @@
 
 - http://protege.stanford.edu/
 - http://jena.apache.org
+
+** Google Maps API
+
+- [[https://console.developers.google.com/flows/enableapi?apiid=maps_backend&keyType=CLIENT_SIDE&reusekey=true][Create API Browser Key]]
+
+#+BEGIN_SRC html
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=INIT_FN"></script>
+#+END_SRC
+
+Replace YOUR_API_KEY & INIT_FN
+
+- https://developers.google.com/maps/documentation/javascript/
+- https://developers.google.com/maps/documentation/javascript/shapes
+
+** Clojurescript
+
+
