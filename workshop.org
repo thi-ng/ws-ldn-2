@@ -29,10 +29,14 @@ Returns a promise object that can be deref'd, and set, once only, with deliver.
 
 - https://github.com/clojure/core.async
 - https://swannodette.github.io/2013/07/12/communicating-sequential-processes/
+- http://ku1ik.com/2015/10/12/sweet-core-async.html
 - http://www.braveclojure.com/core-async/
 - http://www.core-async.info/
 - http://rigsomelight.com/2013/08/12/clojurescript-core-async-dots-game.html
 - https://martintrojer.github.io/clojure/2013/07/07/coreasync-and-blocking-io/
+- http://tech.puredanger.com/2013/07/10/rps-core-async/
+- https://www.youtube.com/watch?v=enwIIGzhahw
+- https://tbaldridge.pivotshare.com/
 
 Advanced core.async operations:
 
@@ -51,98 +55,123 @@ Advanced core.async operations:
 - https://github.com/ztellman/aleph
 - https://github.com/ztellman/manifold
 
-** Linked Data
-*** Resource Description Framework (RDF)
+** Graphs
+*** Linked Data
+**** Resource Description Framework (RDF)
 
-- http://www.w3.org/TR/rdf11-primer/
-- http://www.w3.org/TR/rdf11-concepts/
-- http://www.w3.org/TR/rdf-schema/
+ - http://www.w3.org/TR/rdf11-primer/
+ - http://www.w3.org/TR/rdf11-concepts/
+ - http://www.w3.org/TR/rdf-schema/
+ - https://en.wikipedia.org/wiki/Triplestore
 
-**** RDFa
+***** RDFa
 
-- http://www.w3.org/TR/rdfa-primer/
-- https://developers.google.com/structured-data/
+ - http://www.w3.org/TR/rdfa-primer/
+ - https://developers.google.com/structured-data/
 
-**** Vocabularies
+***** Vocabularies
 
-- http://schema.org/
-- http://lov.okfn.org/dataset/lov
-- http://prefix.cc
+ - http://schema.org/
+ - http://lov.okfn.org/dataset/lov
+ - http://prefix.cc
 
-**** Tools
+***** Tools
 
-- http://www.w3.org/RDF/Validator/
-- https://developers.google.com/structured-data/testing-tool/
+ - http://www.w3.org/RDF/Validator/
+ - https://developers.google.com/structured-data/testing-tool/
 
-*** SPARQL
+**** SPARQL
 
-- https://www.youtube.com/watch?v=FvGndkpa4K0
-- http://www.w3.org/TR/sparql11-overview/
-- http://www.w3.org/TR/sparql11-query/
-- http://www.w3.org/TR/sparql11-protocol/
-- http://www.cambridgesemantics.com/semantic-university/sparql-by-example
+ - https://www.youtube.com/watch?v=FvGndkpa4K0
+ - http://www.w3.org/TR/sparql11-overview/
+ - http://www.w3.org/TR/sparql11-query/
+ - http://www.w3.org/TR/sparql11-protocol/
+ - http://www.cambridgesemantics.com/semantic-university/sparql-by-example
 
-**** Query endpoints & examples
+***** Datastores
 
-***** UK ONS
+  - http://data.gov.uk
+  - https://www.wikidata.org
+  - http://dbpedia.org
+    - http://wiki.dbpedia.org/Downloads2015-04
 
-- http://statistics.data.gov.uk/flint-sparql
+***** Query endpoints & examples
 
-#+BEGIN_SRC sparql
-  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-  PREFIX sdef: <http://statistics.data.gov.uk/def/>
-  PREFIX sg: <http://statistics.data.gov.uk/def/statistical-geography#>
-  PREFIX sid: <http://statistics.data.gov.uk/id/statistical-geography/>
+****** UK ONS
 
-  CONSTRUCT {
-    ?item rdfs:label ?id ;
-          sg:officialName ?name ;
-          sg:hasExteriorLatLongPolygon ?poly .
-  }
-  WHERE {
-    ?item a sdef:statistical-geography ;
-          rdfs:label ?id ;
-          sg:officialname ?name;
-          sg:parentcode sid:E12000007 ;
-          sg:hasExteriorLatLongPolygon ?poly .
-  }
-  ORDER BY ASC(?id)
-#+END_SRC
+ - http://statistics.data.gov.uk/flint-sparql
 
-***** DBpedia
+ #+BEGIN_SRC sparql
+   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+   PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+   PREFIX sdef: <http://statistics.data.gov.uk/def/>
+   PREFIX sg: <http://statistics.data.gov.uk/def/statistical-geography#>
+   PREFIX sid: <http://statistics.data.gov.uk/id/statistical-geography/>
 
-- http://dbpedia.org/sparql
+   CONSTRUCT {
+     ?item rdfs:label ?id ;
+           sg:officialName ?name ;
+           sg:hasExteriorLatLongPolygon ?poly .
+   }
+   WHERE {
+     ?item a sdef:statistical-geography ;
+           rdfs:label ?id ;
+           sg:officialname ?name;
+           sg:parentcode sid:E12000007 ;
+           sg:hasExteriorLatLongPolygon ?poly .
+   }
+   ORDER BY ASC(?id)
+ #+END_SRC
 
-#+BEGIN_SRC sparql
-  PREFIX dbo: <http://dbpedia.org/ontology/>
-  PREFIX dbr: <http://dbpedia.org/resource/>
+****** DBpedia
 
-  SELECT DISTINCT ?p
-  WHERE {
-    ?p a dbo:MusicalArtist ;
-    dbo:genre dbr:Techno ;
-    dbo:birthPlace ?bp .
-    ?bp dbo:country dbr:Germany
-  }
-#+END_SRC
+ - http://dbpedia.org/sparql
 
-*** Datastores
+ #+BEGIN_SRC sparql
+   PREFIX dbo: <http://dbpedia.org/ontology/>
+   PREFIX dbr: <http://dbpedia.org/resource/>
 
-- http://data.gov.uk
-- https://www.wikidata.org
-- http://dbpedia.org
-  - http://wiki.dbpedia.org/Downloads2015-04
+   SELECT DISTINCT ?p
+   WHERE {
+     ?p a dbo:MusicalArtist ;
+     dbo:genre dbr:Techno ;
+     dbo:birthPlace ?bp .
+     ?bp dbo:country dbr:Germany
+   }
+ #+END_SRC
 
-*** Books
+**** Books
 
-- http://linkeddatabook.com/editions/1.0/
-- http://learningsparql.com/
+ - http://linkeddatabook.com/editions/1.0/
+ - http://learningsparql.com/
 
-*** Tools
+**** Tools, frameworks, stores
 
-- http://protege.stanford.edu/
-- http://jena.apache.org
+ - http://protege.stanford.edu/
+ - http://jena.apache.org
+ - http://rdf4j.org/
+ - https://en.wikipedia.org/wiki/List_of_subject-predicate-object_databases
+
+*** Other graph databases
+**** Neo4j
+
+ - http://neo4j.com/
+ - http://clojureneo4j.info/
+ - http://graphdatabases.com/ (free e-book)
+ - http://it-ebooks.info/book/4656/ (free e-book)
+
+**** Query languages
+
+ - http://www.opencypher.org/
+ - http://neo4j.com/developer/cypher/
+ - https://github.com/tinkerpop/gremlin/wiki
+
+**** Others
+
+ - http://tinkerpop.incubator.apache.org/
+ - https://thinkaurelius.github.io/titan/
+ - http://orientdb.com/
+
 
 ** Google Maps API
 
@@ -158,5 +187,4 @@ Replace YOUR_API_KEY & INIT_FN
 - https://developers.google.com/maps/documentation/javascript/shapes
 
 ** Clojurescript
-
 
