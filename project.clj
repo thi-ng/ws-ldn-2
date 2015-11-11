@@ -29,7 +29,7 @@
                                            :optimizations        :none
                                            :asset-path           "js/out"
                                            :output-to            "resources/public/js/app.js"
-                                           :output-dir           "resources/public/js/day1"
+                                           :output-dir           "resources/public/js/out"
                                            :source-map           true
                                            :source-map-timestamp true
                                            :cache-analysis       true}}
