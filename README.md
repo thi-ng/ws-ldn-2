@@ -4,6 +4,8 @@
 
 This repo contains a subset of commented examples created during the workshop.
 
+[Workshop notes & references](workshop.org)
+
 ## Day 1 namespaces
 
 TBD
