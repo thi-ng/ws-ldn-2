@@ -25,7 +25,7 @@
 
   :cljsbuild     {:builds [{:id           "day1"
                             :source-paths ["src/cljs"]
-                            :compiler     {:main                 ws-ldn-2.day1.core
+                            :compiler     {:main                 ws-ldn-2.day1.ui.core
                                            :optimizations        :none
                                            :asset-path           "js/out"
                                            :output-to            "resources/public/js/app.js"
@@ -35,7 +35,7 @@
                                            :cache-analysis       true}}
                            {:id           "day1-min"
                             :source-paths ["src/cljs"]
-                            :compiler     {:main          ws-ldn-2.day1.core
+                            :compiler     {:main          ws-ldn-2.day1.ui.core
                                            :optimizations :advanced
                                            :pretty-print  false
                                            :asset-path    "js/day1"
