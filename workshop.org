@@ -19,13 +19,14 @@ fn dominates the coordination overhead
 
 ** Async
 
-*** delay
+*** Built-ins
+**** delay
 
 Delays execution of body until needed / deref'd
 
 - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/delay/
 
-*** agent
+**** agent
 
 Update value with given fn in separate thread
 
@@ -33,22 +34,22 @@ Update value with given fn in separate thread
 - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/send/
 - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/send-off/
 
-*** future
+**** future
 
 Invokes body in new thread, when obtaining result blocks calling
 thread until future is realized
 
 - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/future/
 
-*** promise / deliver
+**** promise / deliver
 
 Returns a promise object that can be deref'd, and set, once only, with deliver.
 
 - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/promise/
 
-*** realized?
+**** realized?
 
-- http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/realized%3F/
+ - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/realized%3F/
 
 *** core.async
 
@@ -199,6 +200,7 @@ Advanced core.async operations:
  - https://thinkaurelius.github.io/titan/
  - http://orientdb.com/
 
+** Clojurescript
 
 ** Google Maps API
 
@@ -212,6 +214,4 @@ Replace YOUR_API_KEY & INIT_FN
 
 - https://developers.google.com/maps/documentation/javascript/
 - https://developers.google.com/maps/documentation/javascript/shapes
-
-** Clojurescript
 
