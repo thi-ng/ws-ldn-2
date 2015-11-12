@@ -224,3 +224,22 @@ Replace YOUR_API_KEY & INIT_FN
  - https://developers.google.com/maps/documentation/javascript/
  - https://developers.google.com/maps/documentation/javascript/shapes
 
+** Fabric London boroughs
+
+#+BEGIN_SRC clojure
+  (require '[thi.ng.fabric.ld.core :as ld])
+  (require '[clojure.java.io :as io])
+
+  (ld/stop)
+
+  (defn init []
+    (->> "data/london-boroughs.nt"
+         io/resource
+         (update-in (ld/default-config) [:graph :import] conj)
+         ld/make-system
+         constantly
+         (alter-var-root #'ld/system)))
+
+  (init)
+  (ld/start)
+#+END_SRC
