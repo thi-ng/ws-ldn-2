@@ -11,9 +11,10 @@
    [cljsjs.codemirror.mode.clojure :as clj]))
 
 (defn home
-  [view]
+  [route]
   [:div.container
-   [:h1 "Welcome"]])
+   [:h1 "Welcome"]
+   [:textarea {:defaultValue (pr-str route)}]])
 
 (defn cm-editor
   [opts]
@@ -27,7 +28,7 @@
       [:textarea {:defaultValue (:defaultValue opts)}])}))
 
 (defn query-editor
-  [view]
+  [route]
   (let [query (reaction (:query @state/app-state))]
     [:div.container
      [:div.row

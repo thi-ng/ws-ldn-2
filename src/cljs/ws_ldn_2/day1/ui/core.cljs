@@ -12,19 +12,29 @@
    [cljs.core.async :as a]
    [thi.ng.validate.core :as v]))
 
+(defn aget-in
+  "Looks up dotted path (as str) in JS object."
+  [obj path]
+  (loop [obj obj, path (clojure.string/split path ".")]
+    (if path
+      (recur (aget obj (first path)) (next path))
+      obj)))
+
 (def routes
   [{:id        :home
     :match     ["home"]
-    :component views/home
+    :component #'views/home
+    :comp2     "ws_ldn_2.day1.ui.views.home"
     :label     "Home"}
    {:id        :query-edit
     :match     ["query"]
-    :component views/query-editor
+    :component #'views/query-editor
     :label     "Query editor"}])
 
 (defn view-wrapper
   [route]
   (let [route @route]
+    (debug (aget-in js/window (:comp2 route)))
     [:div
      [nav/nav-bar routes route]
      [(:component route) route]]))
@@ -52,5 +62,9 @@
   []
   (start-router)
   (r/render-component [main-panel] (.-body js/document)))
+
+(defn on-js-reload
+  [] (debug :reloaded))
+
 
 (main)

@@ -26,7 +26,7 @@
 
   :cljsbuild     {:builds [{:id           "day1"
                             :source-paths ["src/cljs"]
-                            :figwheel     true
+                            :figwheel     {:on-jsload "ws-ldn-2.day1.ui.core/on-js-reload"}
                             :compiler     {:main                 ws-ldn-2.day1.ui.core
                                            :optimizations        :none
                                            :asset-path           "js/out"
