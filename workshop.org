@@ -51,6 +51,8 @@ Returns a promise object that can be deref'd, and set, once only, with deliver.
 
  - http://conj.io/store/v1/org.clojure/clojure/1.7.0/clj/clojure.core/realized%3F/
 
+**** TODO comparison matrix between prims
+
 *** core.async
 
 - https://github.com/clojure/core.async
@@ -172,6 +174,7 @@ Advanced core.async operations:
 
  - http://linkeddatabook.com/editions/1.0/
  - http://learningsparql.com/
+ - https://cse.google.com/cse/publicurl?cx=008280912992940796406:txxz39lfzo0&q=Linked%20Data
 
 **** Tools, frameworks, stores
 
@@ -202,9 +205,15 @@ Advanced core.async operations:
 
 ** Clojurescript
 
-** Google Maps API
+- http://cljsjs.github.io/
 
-- [[https://console.developers.google.com/flows/enableapi?apiid=maps_backend&keyType=CLIENT_SIDE&reusekey=true][Create API Browser Key]]
+*** CodeMirror
+
+- https://codemirror.net/doc/manual.html
+
+*** Google Maps API
+
+ - [[https://console.developers.google.com/flows/enableapi?apiid=maps_backend&keyType=CLIENT_SIDE&reusekey=true][Create API Browser Key]]
 
 #+BEGIN_SRC html
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=INIT_FN"></script>
@@ -212,6 +221,6 @@ Advanced core.async operations:
 
 Replace YOUR_API_KEY & INIT_FN
 
-- https://developers.google.com/maps/documentation/javascript/
-- https://developers.google.com/maps/documentation/javascript/shapes
+ - https://developers.google.com/maps/documentation/javascript/
+ - https://developers.google.com/maps/documentation/javascript/shapes
 

@@ -8,6 +8,7 @@
                   [org.clojure/core.async "0.2.371"]
                   [thi.ng/geom "0.0.908"]
                   [thi.ng/fabric "0.0.376"]
+                  [thi.ng/validate "0.1.3"]
                   [cljsjs/codemirror "5.7.0-3"]
                   [reagent "0.5.1"]
                   [cljs-log "0.2.2"]
@@ -25,6 +26,7 @@
 
   :cljsbuild     {:builds [{:id           "day1"
                             :source-paths ["src/cljs"]
+                            :figwheel     true
                             :compiler     {:main                 ws-ldn-2.day1.ui.core
                                            :optimizations        :none
                                            :asset-path           "js/out"

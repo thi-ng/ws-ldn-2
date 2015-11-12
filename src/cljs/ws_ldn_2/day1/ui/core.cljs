@@ -1,38 +1,56 @@
 (ns ^:figwheel-always ws-ldn-2.day1.ui.core
   (:require-macros
-   [cljs.core.async.macros :refer [go go-loop]])
+   [reagent.ratom :refer [reaction]]
+   [cljs.core.async.macros :refer [go go-loop]]
+   [cljs-log.core :refer [debug info warn]])
   (:require
+   [ws-ldn-2.day1.ui.state :as state]
+   [ws-ldn-2.day1.ui.router :as router]
+   [ws-ldn-2.day1.ui.nav :as nav]
+   [ws-ldn-2.day1.ui.views :as views]
    [reagent.core :as r]
-   [cljs.core.async :as a]))
+   [cljs.core.async :as a]
+   [thi.ng.validate.core :as v]))
 
-;; App state handling
+(def routes
+  [{:id        :home
+    :match     ["home"]
+    :component views/home
+    :label     "Home"}
+   {:id        :query-edit
+    :match     ["query"]
+    :component views/query-editor
+    :label     "Query editor"}])
 
-(defonce app-state
-  (r/atom {}))
-
-;; react components
-
-(defn dropdown
-  "Dropdown component. Takes currently selected value, on-change handler
-  and a map of menu items, where keys are used as the <option> items' values.
-  The map's values are expected to be maps themselves and need to have at
-  least a :label key. If the :label is missing the item's key is used as label."
-  [sel on-change opts]
-  [:select {:defaultValue sel :on-change on-change}
-   (map
-     (fn [[id val]]
-       [:option {:key (str "dd" id) :value (name id)} (or (:label val) (name id))])
-     opts)])
-
+(defn view-wrapper
+  [route]
+  (let [route @route]
+    [:div
+     [nav/nav-bar routes route]
+     [(:component route) route]]))
 
 (defn main-panel
   "Application main component."
-  [id]
-  [:div "Hello"])
+  []
+  (let [route (reaction (:curr-route @state/app-state))]
+    (fn []
+      (if @route
+        [view-wrapper route]
+        [:div "Initializing..."]))))
+
+(defn start-router
+  []
+  (router/start!
+   routes
+   nil
+   (router/route-for-id routes :home)
+   state/nav-change
+   (constantly nil)))
 
 (defn main
   "Application main entry point, kicks off React component lifecycle."
   []
+  (start-router)
   (r/render-component [main-panel] (.-body js/document)))
 
 (main)
