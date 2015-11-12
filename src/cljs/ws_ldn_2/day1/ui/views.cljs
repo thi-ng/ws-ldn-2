@@ -8,24 +8,24 @@
    [cljsjs.codemirror :as cm]
    [cljsjs.codemirror.addon.edit.matchbrackets]
    [cljsjs.codemirror.addon.edit.closebrackets]
-   [cljsjs.codemirror.mode.clojure :as clj]))
+   [cljsjs.codemirror.mode.clojure]))
 
 (defn home
   [route]
   [:div.container
    [:h1 "Welcome"]
-   [:textarea {:defaultValue (pr-str route)}]])
+   [:textarea {:default-value (pr-str route)}]])
 
 (defn cm-editor
   [opts]
   (r/create-class
    {:component-did-mount
-    (fn [_]
-      (let [editor (.fromTextArea js/CodeMirror (r/dom-node _) (clj->js opts))]
+    (fn [this]
+      (let [editor (.fromTextArea js/CodeMirror (r/dom-node this) (clj->js opts))]
         (.on editor "change" #((:on-change opts) (.getValue %)))))
     :reagent-render
     (fn [_]
-      [:textarea {:defaultValue (:defaultValue opts)}])}))
+      [:textarea {:default-value (:default-value opts)}])}))
 
 (defn query-editor
   [route]
@@ -38,7 +38,7 @@
         {:mode              "text/x-clojure"
          :theme             "material"
          :on-change         #(state/set-query %)
-         :defaultValue      @query
+         :default-value      @query
          :matchBrackets     true
          :autoCloseBrackets true
          :lineNumbers       true

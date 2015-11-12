@@ -9,7 +9,7 @@
   (:import
    [goog.history Html5History]))
 
-(defonce history (doto (Html5History.) (.setUseFragment false)))
+(defonce history (doto (Html5History.) (.setUseFragment true)))
 
 (defn route-for-id
   [routes id] (some #(if (= id (:id %)) %) routes))
