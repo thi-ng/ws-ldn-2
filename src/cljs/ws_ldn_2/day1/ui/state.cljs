@@ -32,17 +32,16 @@
   (io/request
    {:uri     "http://localhost:8000/query"
     :method  :post
-    :data  {:spec (:query @app-state)}
+    :data    {:spec (:query @app-state)}
     :success (fn [status data] (info :response data))
     :error   (fn [status msg] (warn :error status msg))}))
 
 (defn set-viz-query
   []
-  (set-state! :query-viz-uri
-              (str "/queryviz?"
-                   (io/->request-data
-                    {:spec (:query @app-state)
-                     :format "png"}))))
+  (->> {:spec (:query @app-state) :format "png"}
+       (io/->request-data)
+       (str "/queryviz?")
+       (set-state! :query-viz-uri)))
 
 (defn init-map
   [] (debug :init-map))
