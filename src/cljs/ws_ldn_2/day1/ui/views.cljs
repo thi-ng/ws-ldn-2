@@ -36,10 +36,29 @@
          [:div.col-xs-12
           [:img.fullwidth {:src @src}]]]))))
 
+(defn borough-polygon
+  [sel borough]
+  (let [sel? (= (borough '?boroughID) sel)]
+    (svg/polygon
+     (borough '?apoly)
+     {:key (borough '?boroughID)
+      :stroke "red"
+      :fill   (if sel? "yellow" "black")
+      :on-mouse-over #(state/select-borough (borough '?boroughID))})))
+
+(defn map-view
+  []
+  (let [boroughs (reaction (:boroughs @state/app-state))
+        sel      (:selected-borough @state/app-state)]
+    [:div.row
+     [:div.col-xs-12
+      (svg/svg
+       {:width 960 :height 720}
+       (map #(borough-polygon sel %) @boroughs))]]))
+
 (defn query-editor
   [route]
-  (let [query (reaction (:query @state/app-state))
-        polys (reaction (:polygons @state/app-state))]
+  (let [query (reaction (:query @state/app-state))]
     [:div.container
      [:div.row
       [:div.col-xs-12
@@ -61,6 +80,5 @@
        [:button.btn.btn
         {:on-click state/set-viz-query}
         "Visualize"]]]
-     [:div.row
-      [:div.col-xs-12 (svg/svg {:width 960 :height 720} @polys)]]
+     [map-view]
      [query-viz]]))

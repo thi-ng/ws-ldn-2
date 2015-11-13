@@ -45,22 +45,20 @@
 
 (defn process-borough
   [borough]
-  (let [poly    (borough '?poly)
-        poly    (map f/parse-float (clojure.string/split poly #" "))
-        points  (map vec2 (partition 2 poly))
-        _       (debug points)
-        points' (map #(mercator-in-rect (:yx %) [-0.6 0.5 51.75 51.2] 960 720) points)]
-    (debug points')
-    (svg/polygon points' {:stroke "red"})))
+  (let [poly   (first (borough '?apoly))
+        poly   (map f/parse-float (clojure.string/split poly #" "))
+        points (map vec2 (partition 2 poly))]
+    (assoc borough '?apoly
+           (mapv #(mercator-in-rect (:yx %) [-0.6 0.5 51.75 51.2] 960 720) points))))
 
-(defn extract-polygons
+(defn parse-polygons
   [boroughs]
-  (set-state! :polygons (map process-borough boroughs)))
+  (set-state! :boroughs (map (comp process-borough first val) boroughs)))
 
 (defn parse-query-response
   [{:keys [body]}]
-  (if (get (first body) '?poly)
-    (extract-polygons body)
+  (if (-> body vals ffirst (get '?apoly))
+    (do (info :parse) (parse-polygons body))
     (info :no-polies)))
 
 (defn submit-query
@@ -72,6 +70,7 @@
     :data    {:spec (:query @app-state)}
     :success (fn [status data]
                (info :response data)
+               (set-state! :raw-result data)
                (parse-query-response data))
     :error   (fn [status msg] (warn :error status msg))}))
 
@@ -81,6 +80,10 @@
        (io/->request-data)
        (str "http://localhost:8000/queryviz?")
        (set-state! :query-viz-uri)))
+
+(defn select-borough
+  [id]
+  (set-state! :selected-borough id))
 
 (defn init-map
   [] (debug :init-map))
