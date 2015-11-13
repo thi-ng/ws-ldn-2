@@ -6,10 +6,20 @@
    [ws-ldn-2.day1.ui.state :as state]
    [reagent.core :as r]
    [thi.ng.geom.svg.core :as svg]
+   [thi.ng.color.core :as col]
+   [thi.ng.color.gradients :as grad]
+   [thi.ng.math.core :as m]
    [cljsjs.codemirror :as cm]
    [cljsjs.codemirror.addon.edit.matchbrackets]
    [cljsjs.codemirror.addon.edit.closebrackets]
    [cljsjs.codemirror.mode.clojure]))
+
+(def tonemap
+  (->> :orange-blue
+       (grad/cosine-schemes)
+       (apply grad/cosine-gradient 100)
+       (reverse)
+       (vec)))
 
 (defn home
   [route]
@@ -39,7 +49,8 @@
 (defn map-view
   []
   (let [boroughs (reaction (:boroughs @state/app-state))
-        sel      (reaction (:selected-borough @state/app-state))]
+        sel      (reaction (:selected-borough @state/app-state))
+        {:keys [avg-min avg-max]} @state/app-state]
     (fn []
       @sel
       [:div.row
@@ -49,13 +60,20 @@
          (doall
           (map
            (fn [borough]
-             (svg/polygon (borough '?apoly)
-                          {:key           (borough '?boroughID)
-                           :stroke        "red"
-                           :fill          (if (= (borough '?boroughID)
-                                                 (:selected-borough @state/app-state))
-                                            "yellow" "black")
-                           :on-mouse-over #(state/select-borough (borough '?boroughID))}))
+             (svg/polygon
+              (borough '?apoly)
+              {:key           (borough '?boroughID)
+               :stroke        "red"
+               :fill          (-> (m/map-interval (borough '?avg) avg-min avg-max 0 99)
+                                  int
+                                  tonemap
+                                  col/as-css
+                                  deref)
+               
+               #_:fill          #_(if (= (borough '?boroughID)
+                                         (:selected-borough @state/app-state))
+                                    "yellow" "black")
+               :on-mouse-over #(state/select-borough (borough '?boroughID))}))
            @boroughs)))]])))
 
 (defn query-editor

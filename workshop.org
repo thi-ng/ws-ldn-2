@@ -307,12 +307,12 @@ Replace YOUR_API_KEY & INIT_FN
                 [?borough "sg:officialName" ?name]
                 [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
    :aggregate {?num (agg-count ?s)
-               ;;?avg (agg-avg ?price)
+               ?avg (agg-avg ?price)
                ?apoly (agg-collect ?poly)
                ?aname (agg-collect ?name)}
    ;;:filter   (= "E09000027" ?boroughID)
    :group-by ?boroughID
-   :select [?boroughID ?apoly ?num ?aname]}
+   :select [?boroughID ?apoly ?avg ?num ?aname]}
 
   {"E...." #{{?boroughID "E..." ?apoly #{"...."} ?num 123 ?avg 456}}
 #+END_SRC
