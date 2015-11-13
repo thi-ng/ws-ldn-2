@@ -64,15 +64,14 @@
               (borough '?apoly)
               {:key           (borough '?boroughID)
                :stroke        "red"
-               :fill          (-> (m/map-interval (borough '?avg) avg-min avg-max 0 99)
-                                  int
-                                  tonemap
-                                  col/as-css
-                                  deref)
-               
-               #_:fill          #_(if (= (borough '?boroughID)
-                                         (:selected-borough @state/app-state))
-                                    "yellow" "black")
+               :fill          (if (= (borough '?boroughID)
+                                     (:selected-borough @state/app-state))
+                                "yellow"
+                                (-> (m/map-interval (borough '?avg) avg-min avg-max 0 99)
+                                    int
+                                    tonemap
+                                    col/as-css
+                                    deref))
                :on-mouse-over #(state/select-borough (borough '?boroughID))}))
            @boroughs)))]])))
 
@@ -87,7 +86,7 @@
         {:mode              "text/x-clojure"
          :theme             "material"
          :on-change         #(state/set-query %)
-         :default-value      @query
+         :default-value     @query
          :matchBrackets     true
          :autoCloseBrackets true
          :lineNumbers       true
@@ -95,7 +94,7 @@
      [:div.row
       [:div.col-xs-12
        [:button.btn.btn-primary
-        {:on-click state/submit-query}
+        {:on-click #(state/submit-query @query state/parse-query-response)}
         "Submit"] " "
        [:button.btn.btn
         {:on-click state/set-viz-query}

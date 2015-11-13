@@ -10,6 +10,33 @@
    [thi.ng.math.core :as m]
    [thi.ng.domus.io :as io]))
 
+(def query-presets
+  {:boroughs       '{:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
+                     :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+                                  [?s "schema:price" ?price]
+                                  [?s "schema:purchaseDate" ?date]
+                                  [?s "schema:postalCode" ?zip]
+                                  [?s "ws:onsID" ?boroughID]
+                                  [?borough "rdfs:label" ?boroughID]
+                                  [?borough "sg:officialName" ?name]
+                                  [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
+                     :aggregate {?num (agg-count ?s)
+                                 ?avg (agg-avg ?price)
+                                 ?apoly (agg-collect ?poly)
+                                 ?aname (agg-collect ?name)}
+                     :group-by ?boroughID
+                     :select [?boroughID ?apoly ?avg ?num ?aname]}
+
+   :single-borough '{:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
+                    :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+                                 [?s "schema:price" ?price]
+                                 [?s "schema:purchaseDate" ?date]
+                                 [?s "ws:onsID" ?boroughID]
+                                 [?borough "rdfs:label" ?boroughID]]}]
+                     ;;:filter   (= "E09000027" ?boroughID)
+                     :order ?date
+                    :select [?price ?date]}})
+
 (defonce app-state (r/atom {}))
 
 (defn set-state!
@@ -40,8 +67,8 @@
         left             (m/radians left)
         [lat top bottom] (map lat-log [lat top bottom])]
     (vec2
-      (* w (/ (- lon left) (- (m/radians right) left)))
-      (* h (/ (- lat top) (- bottom top))))))
+     (* w (/ (- lon left) (- (m/radians right) left)))
+     (* h (/ (- lat top) (- bottom top))))))
 
 (defn process-borough
   [borough]
@@ -65,16 +92,16 @@
     (info :no-polies)))
 
 (defn submit-query
-  []
+  [q success-fn]
   (io/request
    {:uri     "http://localhost:8000/query"
     :method  :post
     ;;:params  {:limit 1000 :offset 1000}
-    :data    {:spec (:query @app-state)}
+    :data    {:spec q}
     :success (fn [status data]
-               (info :response data)
+               ;;(info :response data)
                (set-state! :raw-result data)
-               (parse-query-response data))
+               (success-fn data))
     :error   (fn [status msg] (warn :error status msg))}))
 
 (defn set-viz-query
@@ -84,9 +111,19 @@
        (str "http://localhost:8000/queryviz?")
        (set-state! :query-viz-uri)))
 
+(defn parse-borough-response
+  [{:keys [body]}]
+  (info :response body))
+
 (defn select-borough
   [id]
-  (set-state! :selected-borough id))
+  (set-state! :selected-borough id)
+  (if-let [cached (get-in @app-state [:query-cache id])]
+    (set-state! :selected-borough-details cached)
+    (let [q (:single-borough query-presets)
+          q (assoc q :filter (list '= id '?boroughID))]
+      (set-state! :selected-borough-details [])
+      (submit-query (pr-str q) parse-borough-response))))
 
 (defn init-map
   [] (debug :init-map))
