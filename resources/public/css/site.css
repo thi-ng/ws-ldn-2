@@ -2,3 +2,7 @@
     font-family: "Inconsolata",Menlo,monospace !important;
     margin-bottom: 1em;
 }
+
+.fullwidth {
+    max-width: 100%;
+}

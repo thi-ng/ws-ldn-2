@@ -153,6 +153,22 @@ Advanced core.async operations:
    ORDER BY ASC(?id)
  #+END_SRC
 
+Same query for [[http://thi.ng/fabric][thi.ng/fabric]]: (doesn't include
+=sdef:statistical-geography= and =sg:parentcode= sub-queries, since we
+didn't use those in the =CONSTRUCT= phase of the above query:
+
+#+BEGIN_SRC clojure
+  {:prefixes {"rdf"  "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+              "sdef" "http://statistics.data.gov.uk/def/"
+              "sg"   "http://statistics.data.gov.uk/def/statistical-geography#"
+              "sid"  "http://statistics.data.gov.uk/id/statistical-geography/"}
+   :q        [{:where [[?item "rdfs:label" ?id]
+                       [?item "sg:officialName" ?name]
+                       [?item "sg:hasExteriorLatLongPolygon" ?poly]]}]
+   :select   [?id ?name ?poly]
+   :order    ?id}
+#+END_SRC
+
 ****** DBpedia
 
  - http://dbpedia.org/sparql

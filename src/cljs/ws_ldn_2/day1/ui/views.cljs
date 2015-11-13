@@ -13,8 +13,7 @@
 (defn home
   [route]
   [:div.container
-   [:h1 "Welcome"]
-   [:textarea {:default-value (pr-str route)}]])
+   [:h1 "Welcome"]])
 
 (defn cm-editor
   [opts]
@@ -26,6 +25,15 @@
     :reagent-render
     (fn [_]
       [:textarea {:default-value (:default-value opts)}])}))
+
+(defn query-viz
+  []
+  (let [src (reaction (:query-viz-uri @state/app-state))]
+    (fn []
+      (when @src
+        [:div.row
+         [:div.col-xs-12
+          [:img.fullwidth {:src @src}]]]))))
 
 (defn query-editor
   [route]
@@ -45,4 +53,10 @@
          :autofocus         true}]]]
      [:div.row
       [:div.col-xs-12
-       [:button.btn.btn-primary "Visualize"]]]]))
+       [:button.btn.btn-primary
+        {:on-click state/submit-query}
+        "Submit"] " "
+       [:button.btn.btn
+        {:on-click state/set-viz-query}
+        "Visualize"]]]
+     [query-viz]]))
