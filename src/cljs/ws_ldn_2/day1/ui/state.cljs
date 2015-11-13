@@ -51,14 +51,17 @@
     (assoc borough '?apoly
            (mapv #(mercator-in-rect (:yx %) [-0.6 0.5 51.75 51.2] 960 720) points))))
 
-(defn parse-polygons
+(defn parse-boroughs
   [boroughs]
-  (set-state! :boroughs (map (comp process-borough first val) boroughs)))
+  (let [boroughs (map (comp process-borough first val) boroughs)]
+    (set-state! :boroughs boroughs)
+    (set-state! :avg-min  (reduce min (map #(get % '?avg) boroughs)))
+    (set-state! :avg-max  (reduce max (map #(get % '?avg) boroughs)))))
 
 (defn parse-query-response
   [{:keys [body]}]
   (if (-> body vals ffirst (get '?apoly))
-    (do (info :parse) (parse-polygons body))
+    (do (info :parse) (parse-boroughs body))
     (info :no-polies)))
 
 (defn submit-query
