@@ -255,3 +255,30 @@ Replace YOUR_API_KEY & INIT_FN
 
   (launch)
 #+END_SRC
+
+#+BEGIN_SRC clojure
+  {:prefix {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
+   :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+                [?s "schema:price" ?price]
+                [?s "schema:purchaseDate" ?date]
+                [?s "schema:postalCode" ?zip]
+                [?s "ws:onsID" ?borough]
+                [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
+   :aggregate {?avg (agg-avg ?price)
+               ?min (agg-min ?price)
+               ?max (agg-max ?price)
+               ?uzip (agg-count ?zip)}
+   :group-by  ?date
+   :select [?uzip]
+   }
+
+  {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
+   :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+                [?s "schema:price" ?price]
+                [?s "schema:purchaseDate" ?date]
+                [?s "schema:postalCode" ?zip]
+                [?s "ws:onsID" ?boroughID]
+                [?borough "rdfs:label" ?boroughID]
+                [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
+   :select [?zip ?price ?date ?boroughID ?poly]}
+#+END_SRC

@@ -61,7 +61,8 @@
   []
   (let [config (-> (ld/default-config)
                    (assoc-in [:graph :import]
-                             [(io/resource "data/london-boroughs.nt")])
+                             [(io/resource "data/london-boroughs.nt")
+                              (io/resource "data/sales-2013.edn")])
                    (update :handler merge
                            {:inject-routes
                             [[:get "/queryviz" queryviz-handler]]

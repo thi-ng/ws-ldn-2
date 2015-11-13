@@ -32,6 +32,7 @@
   (io/request
    {:uri     "http://localhost:8000/query"
     :method  :post
+    ;;:params  {:limit 1000 :offset 1000}
     :data    {:spec (:query @app-state)}
     :success (fn [status data] (info :response data))
     :error   (fn [status msg] (warn :error status msg))}))
