@@ -65,8 +65,8 @@
                    (update :handler merge
                            {:inject-routes
                             [[:get "/queryviz" queryviz-handler]]
-                            :middleware
-                            (fn [config routes]
+                            #_:middleware
+                            #_(fn [config routes]
                               (ld/wrap-middleware
                                config
                                (wrap-cors routes

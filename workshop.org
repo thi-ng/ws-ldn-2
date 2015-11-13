@@ -246,3 +246,12 @@ Replace YOUR_API_KEY & INIT_FN
 2) http://data.london.gov.uk/dataset/average-house-prices-borough
    (Each house sale in London 1995-2014, 190MB CSV, link near bottom of page)
 
+
+** Launching server from REPL
+
+#+BEGIN_SRC clojure
+  (require '[ws-ldn-2.day2.core])
+  (in-ns 'ws-ldn-2.day2.core)
+
+  (launch)
+#+END_SRC

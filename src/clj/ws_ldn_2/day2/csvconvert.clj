@@ -42,7 +42,7 @@
 
 (defn mapped-csv
   ([path cols field-tx]
-   (mapped-csv path cols 1e9))
+   (mapped-csv path cols field-tx 1e9))
   ([path cols field-tx limit]
    (let [rows      (take (inc limit) (load-csv-resource path))
          col-idx   (build-column-index cols (first rows))
@@ -53,22 +53,26 @@
   [sale]
   (ff/map->facts
    {(:transaction_id sale)
-    {"rdf:type"            "schema:SaleEvent"
-     "schema:price"        (:price sale)
-     "schema:postalCode"   (:post_code sale)
-     "schema:purchaseDate" (:date_processed sale)
-     "ws:onsID"            (:borough_code sale)
-     "ws:propertyType"     (:property_type sale)}}))
+    {"rdf:type"             "schema:TradeAction"
+     "schema:price"         (:price sale)
+     "schema:priceCurrency" "GBP"
+     "schema:postalCode"    (:post_code sale)
+     "schema:purchaseDate"  (:date_processed sale)
+     "ws:onsID"             (:borough_code sale)
+     "ws:propertyType"      (:property_type sale)}}))
+
+(defn load-house-sales
+  [path]
+  (mapped-csv
+   path
+   #{"transaction_id" "price" "date_processed" "post_code" "property_type" "borough_code"}
+   {:transaction_id #(subs % 1 (dec (count %)))
+    :price          #(f/parse-int % 10)
+    :date_processed #(.parse df %)}))
 
 (comment
   ;; CSV column fields
   #{"transaction_id" "price" "date_processed" "post_code" "postcode" "property_type" ",whether_newbuild,tenure,address2,address4,town,local_authority,county,record_status,year,month,quarter,house_flat,statsward,oa11,lsoa11,msoa11,inner_outer,year_month,Postcode_sector,Postcode_district,Ward14,ward_code,borough_code,borough_name"}
+  )
 
-  (mapped-csv
-   (io/resource "data/london-sales-2013-2014.csv")
-   #{"transaction_id" "price" "date_processed" "post_code" "property_type" "borough_code"}
-   {:transaction_id #(subs % 1 (dec (count %)))
-    :price #(f/parse-int % 10)
-    :date_processed #(.parse df %)}
-   10))
-
+;; (def sales (load-house-sales (io/resource "data/london-sales-2013-2014.csv")))
