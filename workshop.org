@@ -240,22 +240,9 @@ Replace YOUR_API_KEY & INIT_FN
  - https://developers.google.com/maps/documentation/javascript/
  - https://developers.google.com/maps/documentation/javascript/shapes
 
-** Fabric London boroughs
+** Datasets
 
-#+BEGIN_SRC clojure
-  (require '[thi.ng.fabric.ld.core :as ld])
-  (require '[clojure.java.io :as io])
+1) London borough boundary shapes from ONS SPARQL endpoint (see query above)
+2) http://data.london.gov.uk/dataset/average-house-prices-borough
+   (Each house sale in London 1995-2014, 190MB CSV, link near bottom of page)
 
-  (ld/stop)
-
-  (defn init []
-    (->> "data/london-boroughs.nt"
-         io/resource
-         (update-in (ld/default-config) [:graph :import] conj)
-         ld/make-system
-         constantly
-         (alter-var-root #'ld/system)))
-
-  (init)
-  (ld/start)
-#+END_SRC
