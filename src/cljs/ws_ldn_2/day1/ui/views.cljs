@@ -5,6 +5,7 @@
   (:require
    [ws-ldn-2.day1.ui.state :as state]
    [reagent.core :as r]
+   [thi.ng.geom.svg.core :as svg]
    [cljsjs.codemirror :as cm]
    [cljsjs.codemirror.addon.edit.matchbrackets]
    [cljsjs.codemirror.addon.edit.closebrackets]
@@ -37,7 +38,8 @@
 
 (defn query-editor
   [route]
-  (let [query (reaction (:query @state/app-state))]
+  (let [query (reaction (:query @state/app-state))
+        polys (reaction (:polygons @state/app-state))]
     [:div.container
      [:div.row
       [:div.col-xs-12
@@ -59,4 +61,6 @@
        [:button.btn.btn
         {:on-click state/set-viz-query}
         "Visualize"]]]
+     [:div.row
+      [:div.col-xs-12 (svg/svg {:width 960 :height 720} @polys)]]
      [query-viz]]))

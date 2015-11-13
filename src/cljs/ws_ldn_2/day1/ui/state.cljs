@@ -4,6 +4,10 @@
    [cljs-log.core :refer [debug info warn]])
   (:require
    [reagent.core :as r]
+   [thi.ng.strf.core :as f]
+   [thi.ng.geom.core.vector :refer [vec2]]
+   [thi.ng.geom.svg.core :as svg]
+   [thi.ng.math.core :as m]
    [thi.ng.domus.io :as io]))
 
 (defonce app-state (r/atom {}))
@@ -27,6 +31,38 @@
 (defn set-query
   [q] (set-state! :query q))
 
+(defn lat-log
+  [lat] (Math/log (Math/tan (+ (/ (m/radians lat) 2) m/QUARTER_PI))))
+
+(defn mercator-in-rect
+  [[lon lat] [left right top bottom] w h]
+  (let [lon              (m/radians lon)
+        left             (m/radians left)
+        [lat top bottom] (map lat-log [lat top bottom])]
+    (vec2
+      (* w (/ (- lon left) (- (m/radians right) left)))
+      (* h (/ (- lat top) (- bottom top))))))
+
+(defn process-borough
+  [borough]
+  (let [poly    (borough '?poly)
+        poly    (map f/parse-float (clojure.string/split poly #" "))
+        points  (map vec2 (partition 2 poly))
+        _       (debug points)
+        points' (map #(mercator-in-rect (:yx %) [-0.6 0.5 51.75 51.2] 960 720) points)]
+    (debug points')
+    (svg/polygon points' {:stroke "red"})))
+
+(defn extract-polygons
+  [boroughs]
+  (set-state! :polygons (map process-borough boroughs)))
+
+(defn parse-query-response
+  [{:keys [body]}]
+  (if (get (first body) '?poly)
+    (extract-polygons body)
+    (info :no-polies)))
+
 (defn submit-query
   []
   (io/request
@@ -34,7 +70,9 @@
     :method  :post
     ;;:params  {:limit 1000 :offset 1000}
     :data    {:spec (:query @app-state)}
-    :success (fn [status data] (info :response data))
+    :success (fn [status data]
+               (info :response data)
+               (parse-query-response data))
     :error   (fn [status msg] (warn :error status msg))}))
 
 (defn set-viz-query
