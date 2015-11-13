@@ -4,8 +4,7 @@
    [cljs-log.core :refer [debug info warn]])
   (:require
    [reagent.core :as r]
-   [thi.ng.domus.io :as io]
-   [goog.Uri.QueryData :as qd]))
+   [thi.ng.domus.io :as io]))
 
 (defonce app-state (r/atom {}))
 
