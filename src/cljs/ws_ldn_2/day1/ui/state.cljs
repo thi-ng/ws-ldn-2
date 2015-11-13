@@ -40,7 +40,7 @@
   []
   (->> {:spec (:query @app-state) :format "png"}
        (io/->request-data)
-       (str "/queryviz?")
+       (str "http://localhost:8000/queryviz?")
        (set-state! :query-viz-uri)))
 
 (defn init-map
