@@ -80,7 +80,7 @@
     (.append out \])))
 
 (comment
-  
+
   (->> "data/london-sales-2013-2014.csv"
        (io/resource)
        (load-house-sales)

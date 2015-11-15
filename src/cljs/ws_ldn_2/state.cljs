@@ -13,6 +13,8 @@
    [thi.ng.domus.io :as io]
    [clojure.string :as str]))
 
+(declare compute-borough-limits)
+
 (def query-presets
   {:custom
    {:query "{:prefixes {}
@@ -65,7 +67,7 @@
 
 (defn update-state!
   [key f & args]
-  (info key f args)
+  (info key args)
   (swap! app-state #(apply (if (sequential? key) update-in update) % key f args)))
 
 (defn subscribe
@@ -73,6 +75,28 @@
   (if (sequential? key)
     (reaction (get-in @app-state key))
     (reaction (@app-state key))))
+
+(defn submit-registered-query
+  [id success-fn & opts]
+  (io/request
+   {:uri     (str "/queries/" (name id))
+    :method  :get
+    :data    (apply hash-map opts)
+    :success (fn [status data]
+               (set-state! :raw-query-result data)
+               (success-fn data))
+    :error   (fn [status msg] (warn :error status msg))}))
+
+(defn submit-oneoff-query
+  [q success-fn]
+  (io/request
+   {:uri     "/query"
+    :method  :post
+    :data    {:spec q}
+    :success (fn [status data]
+               (set-state! :raw-query-result data)
+               (success-fn data))
+    :error   (fn [status msg] (warn :error status msg))}))
 
 (defn nav-change
   [route] (set-state! :curr-route route))
@@ -84,6 +108,21 @@
   [q]
   (set-state! :query q)
   (set-state! :query-preset nil))
+
+(defn set-viz-query
+  []
+  (->> {:spec (:query @app-state) :format "png"}
+       (io/->request-data)
+       (str "/queryviz?")
+       (set-state! :query-viz-uri)))
+
+(defn set-heatmap-id
+  [id] (set-state! :heatmap-id (keyword id)))
+
+(defn set-heatmap-key
+  [id]
+  (set-state! :heatmap-key (keyword id))
+  (compute-borough-limits))
 
 (defn apply-query-preset
   [id]
@@ -129,36 +168,7 @@
 (defn parse-query-response
   [response])
 
-(defn submit-registered-query
-  [id success-fn & opts]
-  (io/request
-   {:uri     (str "/queries/" (name id))
-    :method  :get
-    :data    (apply hash-map opts)
-    :success (fn [status data]
-               (set-state! :raw-query-result data)
-               (success-fn data))
-    :error   (fn [status msg] (warn :error status msg))}))
-
-(defn submit-oneoff-query
-  [q success-fn]
-  (io/request
-   {:uri     "/query"
-    :method  :post
-    :data    {:spec q}
-    :success (fn [status data]
-               (set-state! :raw-query-result data)
-               (success-fn data))
-    :error   (fn [status msg] (warn :error status msg))}))
-
-(defn set-viz-query
-  []
-  (->> {:spec (:query @app-state) :format "png"}
-       (io/->request-data)
-       (str "/queryviz?")
-       (set-state! :query-viz-uri)))
-
-(defn parse-borough-response
+(defn parse-borough-prices-response
   [id]
   (fn [{:keys [body]}]
     (info :response body)
@@ -173,18 +183,7 @@
     (let [q (get-in query-presets [:single-borough :query])
           q (str/replace q #"\{BOROUGH_ID\}" id)]
       (set-state! [:query-cache id] [])
-      (submit-oneoff-query q (parse-borough-response id)))))
-
-(defn set-heatmap-id
-  [id] (set-state! :heatmap-id (keyword id)))
-
-(defn set-heatmap-key
-  [id]
-  (set-state! :heatmap-key (keyword id))
-  (compute-borough-limits))
-
-(defn ^:export init-map
-  [] (debug :init-map))
+      (submit-oneoff-query q (parse-borough-prices-response id)))))
 
 (defn init-app
   []
