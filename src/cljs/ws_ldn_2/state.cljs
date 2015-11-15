@@ -88,10 +88,11 @@
     :error   (fn [status msg] (warn :error status msg))}))
 
 (defn submit-oneoff-query
-  [q success-fn]
+  [q success-fn & opts]
   (io/request
    {:uri     "/query"
     :method  :post
+    :params  (apply hash-map opts)
     :data    {:spec q}
     :success (fn [status data]
                (set-state! :raw-query-result data)
@@ -164,7 +165,7 @@
 (defn parse-boroughs
   [boroughs]
   (let [boroughs (map (comp process-borough first val) boroughs)]
-    (set-state! :boroughs {:data (zipmap (map :id boroughs) boroughs)})
+    (set-state! :boroughs {:data (into (sorted-map) (zipmap (map :id boroughs) boroughs))})
     (compute-borough-stats)))
 
 (defn parse-boroughs-query-response
@@ -189,13 +190,14 @@
     (let [q (get-in query-presets [:single-borough :query])
           q (str/replace q #"\{BOROUGH_ID\}" id)]
       (set-state! [:query-cache id] [])
-      (submit-oneoff-query q (parse-borough-prices-response id)))))
+      (submit-oneoff-query q (parse-borough-prices-response id) :limit 1000))))
 
 (defn init-app
   []
   (swap! app-state merge
          {:query        (get-in query-presets [:boroughs :query])
           :query-preset :boroughs
+          :query-cache  {}
           :heatmap-id   :yellow-magenta-cyan
           :heatmap-key  :avg
           :inited       true})
