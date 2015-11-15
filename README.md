@@ -1,10 +1,12 @@
 # Clojure/Clojurescript workshop
 
-(WS-LDN-1)
+(WS-LDN-2)
 
 This repo contains a subset of commented examples created during the workshop.
 
 [Workshop notes & references](workshop.org)
+
+![London house prices 2013/14](assets/ldn-heatmap.jpg)
 
 ## Overview
 
@@ -29,15 +31,7 @@ This repo contains a subset of commented examples created during the workshop.
 - [Visualizing data in SVG](http://thi.ng/geom) & WebGL
 - Composing WebGL shaders from [re-usable fragments](http://thi.ng/shadergraph)
 
-## Day 1 namespaces
-
-TBD
-
-## Day 2 namespaces
-
-TBD
-
-## Day 3 namespaces
+## Namespaces
 
 TBD
 
