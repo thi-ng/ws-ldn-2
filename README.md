@@ -6,7 +6,20 @@ This repo contains a subset of commented examples created during the workshop.
 
 [Workshop notes & references](workshop.org)
 
+# Example app
+
+We used geographic data from the
+[ONS linked data portal](http://statistics.data.gov.uk/) and sampled &
+converted housing datasets from the
+[London Data Store](http://data.london.gov.uk/dataset/average-house-prices-borough)
+to RDF in order to build heatmap visualizations of the London housing
+situation:
+
+This heatmap shows average property sale prices per borough in 2013/14:
+
 ![London house prices 2013/14](assets/ldn-heatmap.jpg)
+
+This heatmap is based on the number of property sales, showing a clear bias in the south east:
 
 ![London house sales (count) 2013/14](assets/ldn-heatmap-count.jpg)
 
