@@ -1,0 +1,29 @@
+{"boroughs"
+ {:prefixes  {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
+  :q         [{:where [[?s "rdf:type" "schema:TradeAction"]
+                       [?s "schema:price" ?price]
+                       [?s "schema:purchaseDate" ?date]
+                       [?s "schema:postalCode" ?zip]
+                       [?s "ws:onsID" ?boroughID]
+                       [?borough "rdfs:label" ?boroughID]
+                       [?borough "sg:officialName" ?name]
+                       [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
+  :aggregate {?num   (agg-count ?s)
+              ?avg   (agg-avg ?price)
+              ?min   (agg-min ?price)
+              ?max   (agg-max ?price)
+              ?apoly (agg-collect ?poly)
+              ?aname (agg-collect ?name)}
+  :group-by  ?boroughID
+  :select    [?boroughID ?apoly ?avg ?min ?max ?num ?aname]}
+
+ "single-borough"
+ {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
+  :q        [{:where [[?s "rdf:type" "schema:TradeAction"]
+                      [?s "schema:price" ?price]
+                      [?s "schema:purchaseDate" ?date]
+                      [?s "ws:onsID" ?boroughID]
+                      [?borough "rdfs:label" ?boroughID]]}]
+  ;;:filter   (= "{BOROUGH_ID}" ?boroughID)
+  :order    ?date
+  :select   [?price ?date]}}

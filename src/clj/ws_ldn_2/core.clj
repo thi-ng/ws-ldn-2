@@ -1,5 +1,6 @@
-(ns ws-ldn-2.day2.core
+(ns ws-ldn-2.core
   (:require
+   [ws-ldn-2.utils :as utils]
    [thi.ng.fabric.ld.core :as ld]
    [thi.ng.fabric.facts.queryviz :as qviz]
    [thi.ng.validate.core :as v]
@@ -53,27 +54,26 @@
 
 ;; component system lifecycle control fns
 
-(def system "Component system container" nil)
+(def system "Component system map" nil)
 
 (defn init
   "Initializes custom fabric.ld component system based on default config,
-  but with extra default graph, handlers & CORS middleware"
+  but with different data and extra queries, handlers"
   []
-  (let [config (-> (ld/default-config)
-                   (assoc-in [:graph :import]
-                             [(io/resource "data/london-boroughs.nt")
-                              (io/resource "data/sales-2013.edn")])
-                   (update :handler merge
-                           {:inject-routes
-                            [[:get "/queryviz" queryviz-handler]]
-                            #_:middleware
-                            #_(fn [config routes]
-                              (ld/wrap-middleware
-                               config
-                               (wrap-cors routes
-                                          :access-control-allow-origin  [#"http://localhost"]
-                                          :access-control-allow-methods [:get :put :post :delete])))}))]
+  (let [config (merge-with
+                utils/deep-merge
+                (ld/default-config)
+                {:graph   {:import ^:replace [(io/resource "data/london-boroughs.nt")
+                                              (io/resource "data/sales-2013-xl.edn")]}
+                 :queries {:specs (read-string (slurp (io/resource "data/queries.edn")))}
+                 :handler {:inject-routes [[:get "/queryviz" queryviz-handler]
+                                           [:get "/" (constantly
+                                                      (fn [req]
+                                                        {:status 302
+                                                         :header {"Location" "/index.html"}}))]]}
+                 :log     {:fn (fn [_ _] (fn [_]))}})]
     (taoensso.timbre/set-level! :info)
+    (clojure.pprint/pprint config)
     (alter-var-root #'system (constantly (ld/make-system config)))))
 
 (defn start []
@@ -88,4 +88,4 @@
 
 (defn reset []
   (stop)
-  (refresh :after 'ws-ldn-2.day2.core/launch))
+  (refresh :after 'ws-ldn-2.core/launch))

@@ -1,4 +1,4 @@
-(ns ws-ldn-2.day1.ui.router
+(ns ws-ldn-2.router
   (:require-macros
    [cljs-log.core :refer [debug info warn]])
   (:require

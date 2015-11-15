@@ -1,9 +1,9 @@
-(ns ws-ldn-2.day1.ui.nav
+(ns ws-ldn-2.nav
   (:require-macros
    [reagent.ratom :refer [reaction]])
   (:require
-   [ws-ldn-2.day1.ui.state :as state]
-   [ws-ldn-2.day1.ui.router :as router]))
+   [ws-ldn-2.state :as state]
+   [ws-ldn-2.router :as router]))
 
 (defn nav-bar
   [routes route]

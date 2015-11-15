@@ -1,6 +1,5 @@
-(ns ws-ldn-2.day2.csvconvert
+(ns ws-ldn-2.csvconvert
   (:require
-   [thi.ng.dstruct.core :as d]
    [thi.ng.fabric.facts.core :as ff]
    [thi.ng.strf.core :as f]
    [clojure.data.csv :as csv]
@@ -49,30 +48,43 @@
          keep-cols (set (keys col-idx))]
      (map #(transform-csv-row col-idx keep-cols field-tx %) (rest rows)))))
 
-(defn sale->graph
+(defn sale->triples
   [sale]
   (ff/map->facts
-   {(:transaction_id sale)
-    {"rdf:type"             "schema:TradeAction"
-     "schema:price"         (:price sale)
-     "schema:priceCurrency" "GBP"
-     "schema:postalCode"    (:post_code sale)
-     "schema:purchaseDate"  (:date_processed sale)
-     "ws:onsID"             (:borough_code sale)
-     "ws:propertyType"      (:property_type sale)}}))
+   {(:transaction_id sale) {"rdf:type"             "schema:SellAction"
+                            "schema:price"         (:price sale)
+                            "schema:priceCurrency" "GBP"
+                            "schema:postalCode"    (:post_code sale)
+                            "schema:purchaseDate"  (:date_processed sale)
+                            "ws:onsID"             (:borough_code sale)
+                            "ws:propertyType"      (:property_type sale)}}))
 
 (defn load-house-sales
   [path]
   (mapped-csv
    path
+   ;; CSV column fields to extract
    #{"transaction_id" "price" "date_processed" "post_code" "property_type" "borough_code"}
+   ;; CSV column transformers
    {:transaction_id #(subs % 1 (dec (count %)))
     :price          #(f/parse-int % 10)
     :date_processed #(.parse df %)}))
 
-(comment
-  ;; CSV column fields
-  #{"transaction_id" "price" "date_processed" "post_code" "postcode" "property_type" ",whether_newbuild,tenure,address2,address4,town,local_authority,county,record_status,year,month,quarter,house_flat,statsward,oa11,lsoa11,msoa11,inner_outer,year_month,Postcode_sector,Postcode_district,Ward14,ward_code,borough_code,borough_name"}
-  )
+(defn write-triples-edn
+  "Takes a file path and seq of CSV record maps, converts each map
+  into a seq of triples and writes all triples to given file."
+  [path xs]
+  (with-open [out (io/writer path)]
+    (.append out \[)
+    (doseq [f (mapcat sale->triples xs)] (.write out (pr-str f)))
+    (.append out \])))
 
-;; (def sales (load-house-sales (io/resource "data/london-sales-2013-2014.csv")))
+(comment
+  
+  (->> "data/london-sales-2013-2014.csv"
+       (io/resource)
+       (load-house-sales)
+       (take-nth 10)
+       (write-triples-edn "data/sales-2013.edn")
+       (time))
+  )

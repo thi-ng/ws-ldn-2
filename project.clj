@@ -7,7 +7,7 @@
                   [org.clojure/clojurescript "1.7.170"]
                   [org.clojure/core.async "0.2.371"]
                   [thi.ng/geom "0.0.908"]
-                  [thi.ng/fabric "0.0.382"]
+                  [thi.ng/fabric "0.0.386"]
                   [thi.ng/validate "0.1.3"]
                   [thi.ng/domus "0.2.0"]
                   [cljsjs/codemirror "5.7.0-3"]
@@ -20,16 +20,18 @@
                   [lein-cljsbuild "1.1.1"]
                   [lein-environ "1.0.0"]]
 
+  :jvm-opts      ^:replace ["-Xms768M" "-Xmx1280M"]
+
   :source-paths  ["src/clj" "src/cljs"]
 
   :clean-targets ^{:protect false} ["target" "resources/public/js"]
 
   :profiles      {:prod {:env {:log-level 4}}}
 
-  :cljsbuild     {:builds [{:id           "day1"
+  :cljsbuild     {:builds [{:id           "dev"
                             :source-paths ["src/cljs"]
-                            :figwheel     {:on-jsload "ws-ldn-2.day1.ui.core/on-js-reload"}
-                            :compiler     {:main                 ws-ldn-2.day1.ui.core
+                            :figwheel     {:on-jsload "ws-ldn-2.core/on-js-reload"}
+                            :compiler     {:main                 ws-ldn-2.core
                                            :optimizations        :none
                                            :asset-path           "js/out"
                                            :output-to            "resources/public/js/app.js"
@@ -37,9 +39,9 @@
                                            :source-map           true
                                            :source-map-timestamp true
                                            :cache-analysis       true}}
-                           {:id           "day1-min"
+                           {:id           "min"
                             :source-paths ["src/cljs"]
-                            :compiler     {:main          ws-ldn-2.day1.ui.core
+                            :compiler     {:main          ws-ldn-2.core
                                            :optimizations :advanced
                                            :pretty-print  false
                                            :asset-path    "js/day1"

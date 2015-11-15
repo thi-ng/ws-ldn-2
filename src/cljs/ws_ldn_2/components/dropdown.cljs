@@ -1,4 +1,4 @@
-(ns ws-ldn-2.day1.ui.components)
+(ns ws-ldn-2.components.dropdown)
 
 (defn dropdown
   "Dropdown component. Takes currently selected value, on-change handler
@@ -6,7 +6,7 @@
   The map's values are expected to be maps themselves and need to have at
   least a :label key. If the :label is missing the item's key is used as label."
   [sel on-change opts]
-  [:select
+  [:select.form-control
    {:defaultValue sel
     :on-change    on-change}
    (map

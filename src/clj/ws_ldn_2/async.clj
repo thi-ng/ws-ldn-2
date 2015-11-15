@@ -1,4 +1,4 @@
-(ns ws-ldn-2.day1.core
+(ns ws-ldn-2.async
   (:require
    [clojure.core.async :as a :refer [go go-loop <! >! timeout]]))
 
