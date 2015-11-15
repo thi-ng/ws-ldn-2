@@ -2,8 +2,8 @@
  {:prefixes  {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
   :q         [{:where [[?s "rdf:type" "schema:TradeAction"]
                        [?s "schema:price" ?price]
-                       [?s "schema:purchaseDate" ?date]
-                       [?s "schema:postalCode" ?zip]
+                       ;;[?s "schema:purchaseDate" ?date]
+                       ;;[?s "schema:postalCode" ?zip]
                        [?s "ws:onsID" ?boroughID]
                        [?borough "rdfs:label" ?boroughID]
                        [?borough "sg:officialName" ?name]
@@ -17,13 +17,13 @@
   :group-by  ?boroughID
   :select    [?boroughID ?apoly ?avg ?min ?max ?num ?aname]}
 
- "single-borough"
+ "borough-prices"
  {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
   :q        [{:where [[?s "rdf:type" "schema:TradeAction"]
                       [?s "schema:price" ?price]
                       [?s "schema:purchaseDate" ?date]
                       [?s "ws:onsID" ?boroughID]
                       [?borough "rdfs:label" ?boroughID]]}]
-  ;;:filter   (= "{BOROUGH_ID}" ?boroughID)
+  :group-by ?boroughID
   :order    ?date
   :select   [?price ?date]}}

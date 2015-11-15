@@ -7,7 +7,7 @@
 
 (defn nav-bar
   [routes route]
-  (let [collapse (reaction (:nav-collapsed? @state/app-state))]
+  (let [open? (reaction (:nav-open? @state/app-state))]
     [:nav.navbar.navbar-default
      [:div.container-fluid
       [:div.navbar-header
@@ -19,7 +19,7 @@
         [:span.icon-bar]]
        [:span.navbar-brand "WS-LDN-2"]]
       [:div
-       {:class (str "collapse navbar-collapse" (if @collapse " in"))}
+       {:class (str "collapse navbar-collapse" (if @open? " in"))}
        [:ul.nav.navbar-nav
         (for [r routes :let [uri (router/format-route r {})]]
           [:li {:key (str "nav-" (:id r))}

@@ -88,7 +88,7 @@
   (let [boroughs    (state/subscribe :boroughs)
         heatmap-id  (state/subscribe :heatmap-id)
         heatmap-key (state/subscribe :heatmap-key)
-        cache (state/subscribe :query-cache)]
+        cache       (state/subscribe :query-cache)]
     (fn []
       (let [{:keys [data selected min max]} @boroughs
             cache @cache]
@@ -138,14 +138,17 @@
                                             :minor       100
                                             :pos         100
                                             :label       (viz/default-svg-label int)
-                                            :label-style {:style {:font-size "9px"}}})
+                                            :label-style {:style {:font-size "9px"}}
+                                            :attribs     {:stroke-width "0.5px"}})
                                   :y-axis (viz/log-axis
                                            {:domain      [min-v max-v]
                                             :range       [100 5]
                                             :pos         40
                                             :label-dist  15
-                                            :label (viz/default-svg-label utils/format-k)
-                                            :label-style {:style {:font-size "9px"} :text-anchor "end"}})
+                                            :label       (viz/default-svg-label utils/format-k)
+                                            :label-style {:style {:font-size "9px"} :text-anchor "end"}
+                                            :label-y     3
+                                            :attribs     {:stroke-width "0.5px"}})
                                   :grid   {:attribs {:stroke "#ccc" :stroke-width "0.5px"}
                                            :minor-y true}
                                   :data   [{:values  (map-indexed vector data)

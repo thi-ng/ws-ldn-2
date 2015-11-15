@@ -1,7 +1,8 @@
 (ns ws-ldn-2.state
   (:require-macros
    [reagent.ratom :refer [reaction]]
-   [cljs-log.core :refer [debug info warn]])
+   [cljs-log.core :refer [debug info warn]]
+   [cljs.core.async.macros :refer [go go-loop]])
   (:require
    [ws-ldn-2.map-project :as mp]
    [reagent.core :as r]
@@ -11,52 +12,62 @@
    [thi.ng.geom.svg.core :as svg]
    [thi.ng.math.core :as m]
    [thi.ng.domus.io :as io]
+   [cljs.core.async :as async]
    [clojure.string :as str]))
 
 (declare compute-borough-stats)
 
 (def query-presets
   {:custom
-   {:query "{:prefixes {}
- :q [{:where []}]
- :select :*}"
+   {:query "{:prefixes {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
+ :q        [{:where [?s ?p ?o]}]
+ :order    ?s
+ :select   :*
+}"
     :label "Custom"}
 
    :boroughs
-   {:query "{:prefixes {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
- :q [{:where [[?s \"rdf:type\" \"schema:TradeAction\"]
-              [?s \"schema:price\" ?price]
-              [?s \"schema:purchaseDate\" ?date]
-              [?s \"schema:postalCode\" ?zip]
-              [?s \"ws:onsID\" ?boroughID]
-              [?borough \"rdfs:label\" ?boroughID]
-              [?borough \"sg:officialName\" ?name]
-              [?borough \"sg:hasExteriorLatLongPolygon\" ?poly]]}]
- :aggregate {?num (agg-count ?s)
-             ?avg (agg-avg ?price)
-             ?min (agg-min ?price)
-             ?max (agg-max ?price)
+   {:query "{:prefixes  {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
+ :q         [{:where [[?s \"rdf:type\" \"schema:TradeAction\"]
+                      [?s \"schema:price\" ?price]
+                      [?s \"schema:purchaseDate\" ?date]
+                      [?s \"schema:postalCode\" ?zip]
+                      [?s \"ws:onsID\" ?boroughID]
+                      [?borough \"rdfs:label\" ?boroughID]
+                      [?borough \"sg:officialName\" ?name]
+                      [?borough \"sg:hasExteriorLatLongPolygon\" ?poly]]}]
+ :aggregate {?num   (agg-count ?s)
+             ?avg   (agg-avg ?price)
+             ?min   (agg-min ?price)
+             ?max   (agg-max ?price)
              ?apoly (agg-collect ?poly)
              ?aname (agg-collect ?name)}
- :group-by ?boroughID
- :select [?boroughID ?apoly ?avg ?min ?max ?num ?aname]}"
+ :group-by  ?boroughID
+ :select    [?boroughID ?apoly ?avg ?min ?max ?num ?aname]
+}"
     :label "London boroughs (polygons)"}
 
    :single-borough
    {:query "{:prefixes {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
- :q [{:where [[?s \"rdf:type\" \"schema:TradeAction\"]
-              [?s \"schema:price\" ?price]
-              [?s \"schema:purchaseDate\" ?date]
-              [?s \"ws:onsID\" ?boroughID]
-              [?borough \"rdfs:label\" ?boroughID]]}]
+ :q        [{:where [[?s \"rdf:type\" \"schema:TradeAction\"]
+                     [?s \"schema:price\" ?price]
+                     [?s \"schema:purchaseDate\" ?date]
+                     [?s \"ws:onsID\" ?boroughID]
+                     [?borough \"rdfs:label\" ?boroughID]]}]
  :filter   (= \"{BOROUGH_ID}\" ?boroughID)
- :order ?date
- :select [?price ?date]}"
+ :order    ?date
+ :select   [?price ?date]
+}"
     :label "House prices (single borough)"}})
 
 (def heatmap-types
   {:avg {:label "Average sale price"}
    :num {:label "Number of sales"}})
+
+(def init-states
+  {:init            "Initializing..."
+   :detail-query    "Loading borough details..."
+   :generate-charts "Generating charts..."})
 
 (defonce app-state (r/atom {}))
 
@@ -76,41 +87,50 @@
     (reaction (get-in @app-state key))
     (reaction (@app-state key))))
 
+(defn do-request
+  [spec ch]
+  (->> {:success (fn [status data]
+                   (set-state! :raw-query-result data)
+                   (async/put! ch data))
+        :error   (fn [status msg] (warn :error status msg))}
+       (merge spec)
+       (io/request)))
+
 (defn submit-registered-query
-  [id success-fn & opts]
-  (io/request
-   {:uri     (str "/queries/" (name id))
-    :method  :get
-    :data    (apply hash-map opts)
-    :success (fn [status data]
-               (set-state! :raw-query-result data)
-               (success-fn data))
-    :error   (fn [status msg] (warn :error status msg))}))
+  [id ch & opts]
+  (do-request
+   {:uri    (str "/queries/" (name id))
+    :data   (apply hash-map opts)
+    :method :get}
+   ch))
 
 (defn submit-oneoff-query
-  [q success-fn & opts]
-  (io/request
-   {:uri     "/query"
-    :method  :post
-    :params  (apply hash-map opts)
-    :data    {:spec q}
-    :success (fn [status data]
-               (set-state! :raw-query-result data)
-               (success-fn data))
-    :error   (fn [status msg] (warn :error status msg))}))
+  [q ch & opts]
+  (do-request
+   {:uri    "/query"
+    :params (apply hash-map opts)
+    :data   {:spec q}
+    :method :post}
+   ch))
 
 (defn nav-change
   [route]
   (set-state! :curr-route route)
-  (set-state! :nav-collapsed? false))
+  (set-state! :nav-open? false))
 
 (defn nav-toggle-collapse
-  [] (update-state! :nav-collapsed? not))
+  [] (update-state! :nav-open? not))
+
+(defn set-init-state
+  [id] (set-state! :init-state id))
 
 (defn set-query
-  [q]
-  (set-state! :query q)
-  (set-state! :query-preset nil))
+  [q] (set-state! :query q))
+
+(defn set-query-preset
+  [id]
+  (set-state! :query (get-in query-presets [id :query]))
+  (set-state! :query-preset id))
 
 (defn set-viz-query
   []
@@ -123,27 +143,7 @@
   [id] (set-state! :heatmap-id (keyword id)))
 
 (defn set-heatmap-key
-  [id]
-  (set-state! :heatmap-key (keyword id))
-  (compute-borough-stats))
-
-(defn apply-query-preset
-  [id]
-  (set-state! :query (get-in query-presets [id :query]))
-  (set-state! :query-preset id))
-
-(defn compute-borough-stats
-  []
-  (let [boroughs (-> @app-state :boroughs :data vals)
-        key      (:heatmap-key @app-state)]
-    (update-state!
-     :boroughs merge
-     {:min       (reduce min (map key boroughs))
-      :max       (reduce max (map key boroughs))
-      :total-min (reduce min (map :min boroughs))
-      :total-max (reduce max (map :max boroughs))
-      :total-avg (/ (reduce + (map :avg boroughs)) (count boroughs))
-      :total-num (reduce + (map :num boroughs))})))
+  [id] (async/put! (:borough-stats-chan @app-state) (keyword id)))
 
 (defn process-borough
   [{:syms [?apoly ?avg ?min ?max ?num ?boroughID ?aname]}]
@@ -162,18 +162,39 @@
      :min      ?min
      :max      ?max}))
 
-(defn parse-boroughs
+(defn generate-borough-charts
   [boroughs]
-  (let [boroughs (map (comp process-borough first val) boroughs)]
-    (set-state! :boroughs {:data (into (sorted-map) (zipmap (map :id boroughs) boroughs))})
-    (compute-borough-stats)))
+  (set-state! :query-cache boroughs))
 
-(defn parse-boroughs-query-response
-  [response]
-  (parse-boroughs (:body response)))
+(defn borough-stats-processor
+  [ch]
+  (go-loop []
+    (when-let [key (async/<! ch)]
+      (let [boroughs (-> @app-state :boroughs :data vals)]
+        (set-state! :heatmap-key key)
+        (update-state!
+         :boroughs merge
+         {:min       (reduce min (map key boroughs))
+          :max       (reduce max (map key boroughs))
+          :total-min (reduce min (map :min boroughs))
+          :total-max (reduce max (map :max boroughs))
+          :total-avg (/ (reduce + (map :avg boroughs)) (count boroughs))
+          :total-num (reduce + (map :num boroughs))})
+        (recur)))))
 
-(defn parse-query-response
-  [response])
+(defn borough-query-processor
+  [resp-chan stats-chan]
+  (go
+    (when-let [resp (async/<! resp-chan)]
+      (let [boroughs (map (comp process-borough first val) (:body resp))]
+        (set-state! :boroughs {:data (into (sorted-map) (zipmap (map :id boroughs) boroughs))})
+        (async/>! stats-chan (:heatmap-key @app-state))
+        (set-init-state :detail-query)
+        (submit-registered-query :borough-prices resp-chan)
+        (when-let [resp (async/<! resp-chan)]
+          (set-init-state :generate-charts)
+          (generate-borough-charts (:body resp))
+          (set-state! :ready? true))))))
 
 (defn parse-borough-prices-response
   [id]
@@ -185,21 +206,20 @@
 (defn select-borough
   [id]
   (set-state! [:boroughs :selected] id)
-  (if-let [cached (get-in @app-state [:query-cache id])]
-    (set-state! :selected-borough-details cached)
-    (let [q (get-in query-presets [:single-borough :query])
-          q (str/replace q #"\{BOROUGH_ID\}" id)]
-      (set-state! [:query-cache id] [])
-      (submit-oneoff-query q (parse-borough-prices-response id) :limit 1000))))
+  (set-state! :selected-borough-details (get-in @app-state [:query-cache id])))
 
 (defn init-app
   []
-  (swap! app-state merge
-         {:query        (get-in query-presets [:boroughs :query])
-          :query-preset :boroughs
-          :query-cache  {}
-          :heatmap-id   :yellow-magenta-cyan
-          :heatmap-key  :avg
-          :inited       true})
-  (submit-registered-query
-   :boroughs parse-boroughs-query-response))
+  (let [borough-chan (async/chan)
+        stats-chan   (async/chan)]
+    (swap! app-state merge
+           {:query                  (get-in query-presets [:boroughs :query])
+            :query-preset           :boroughs
+            :heatmap-id             :yellow-magenta-cyan
+            :heatmap-key            :avg
+            :inited                 true
+            :init-state             :init
+            :borough-stats-chan     stats-chan})
+    (borough-stats-processor stats-chan)
+    (borough-query-processor borough-chan stats-chan)
+    (submit-registered-query :boroughs borough-chan)))
