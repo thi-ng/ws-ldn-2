@@ -11,6 +11,9 @@
       (recur (aget obj (first path)) (next path))
       obj)))
 
+(defn event-value-id
+  [e] (-> e .-target .-value keyword))
+
 (defn format-decimal
   [x prec thousands frac]
   (str/replace

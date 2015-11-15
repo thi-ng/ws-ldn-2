@@ -4,6 +4,7 @@
    [cljs-log.core :refer [debug info warn]])
   (:require
    [ws-ldn-2.state :as state]
+   [ws-ldn-2.utils :as utils]
    [ws-ldn-2.components.dropdown :as dd]
    [ws-ldn-2.components.editor :as editor]
    [reagent.core :as r]))
@@ -47,6 +48,6 @@
       [:div.col-xs-6
        [dd/dropdown
         @q-preset
-        #(state/apply-query-preset (-> % .-target .-value keyword))
+        #(state/apply-query-preset (utils/event-value-id %))
         state/query-presets]]]
      [query-viz]]))

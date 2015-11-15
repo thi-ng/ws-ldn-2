@@ -97,12 +97,12 @@
           [:div.col-xs-3 {:style {:margin-top "22px"}}
            [dd/dropdown
             @heatmap-id
-            #(state/set-heatmap-key (-> % .-target .-value keyword))
+            #(state/set-heatmap-key (utils/event-value-id %))
             state/heatmap-types]]
           [:div.col-xs-3 {:style {:margin-top "22px"}}
            [dd/dropdown
             @heatmap-id
-            #(state/set-heatmap-id (-> % .-target .-value keyword))
+            #(state/set-heatmap-id (utils/event-value-id %))
             heatmaps]]]
          [:div.row
           [:div.col-xs-12
