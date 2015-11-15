@@ -39,11 +39,12 @@
 (defn main-panel
   "Application main component."
   []
-  (let [route (reaction (:curr-route @state/app-state))]
+  (let [route  (reaction (:curr-route @state/app-state))
+        ready? (reaction (:boroughs @state/app-state))]
     (fn []
-      (if @route
+      (if (and @ready? @route)
         [view-wrapper route]
-        [:div "Initializing..."]))))
+        [:div [:h1 "Initializing..."]]))))
 
 (defn start-router
   []

@@ -153,12 +153,12 @@
                                             :layout  viz/svg-line-plot}]}]
                        (->> spec
                             (viz/svg-plot2d-cartesian)
-                            (svgadapt/inject-element-attribs svgadapt/key-attrib-injector)
                             (svg/svg
                              {:width "100%" :viewBox "0 0 240 120"}
                              (svg/linear-gradient
                               "grad" {:gradientTransform "rotate(90)"}
-                              [0 (col/css "#f03")] [1 (col/css "#0af")])))))
+                              [0 (col/css "#f03")] [1 (col/css "#0af")]))
+                            (svgadapt/inject-element-attribs svgadapt/key-attrib-injector))))
                    [:div.caption
                     [:h5 (:name b)]]]]))
               (partition-all 3)
