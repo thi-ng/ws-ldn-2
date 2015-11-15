@@ -8,6 +8,8 @@ This repo contains a subset of commented examples created during the workshop.
 
 ![London house prices 2013/14](assets/ldn-heatmap.jpg)
 
+![London house sales (count) 2013/14](assets/ldn-heatmap-count.jpg)
+
 ## Overview
 
 - Brief review of Clojure concepts
