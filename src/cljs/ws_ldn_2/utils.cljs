@@ -19,6 +19,6 @@
   (let [x' (str/replace (.toFixed (Math/abs x) prec) "." frac)]
     (str
      (if (neg? x) "-")
-     (str/replace x' #"(\d)(?=(\d{3})+[^\d])" (str "$1" thousands)))))
+     (str/replace x' #"(\d)(?=(\d{3})+([^\d]|$))" (str "$1" thousands)))))
 
 (defn format-gbp [x] (format-decimal x 2 "," "."))

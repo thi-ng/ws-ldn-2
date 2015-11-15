@@ -115,7 +115,7 @@
           [:div.col-xs-12
            [:table.table.table-condensed
             [:tbody
-             [:tr [:th "Total sales:"] [:td (:total-num @boroughs)]]
+             [:tr [:th "Total sales:"] [:td (utils/format-decimal (:total-num @boroughs) 0 "," "")]]
              [:tr [:th "Total average price:"] [:td "£" (utils/format-gbp (:total-avg @boroughs))]]
              [:tr [:th "Total min price:"] [:td "£" (utils/format-gbp (:total-min @boroughs))]]
              [:tr [:th "Total max price:"] [:td "£" (utils/format-gbp (:total-max @boroughs))]]]]]]]))))
