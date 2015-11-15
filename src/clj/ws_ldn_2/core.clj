@@ -70,7 +70,7 @@
                                            [:get "/" (constantly
                                                       (fn [req]
                                                         {:status 302
-                                                         :header {"Location" "/index.html"}}))]]}
+                                                         :headers {"Location" "/index.html"}}))]]}
                  :log     {:fn (fn [_ _] (fn [_]))}})]
     (taoensso.timbre/set-level! :info)
     (clojure.pprint/pprint config)
