@@ -13,7 +13,7 @@
    [thi.ng.domus.io :as io]
    [clojure.string :as str]))
 
-(declare compute-borough-limits)
+(declare compute-borough-stats)
 
 (def query-presets
   {:custom
@@ -99,7 +99,9 @@
     :error   (fn [status msg] (warn :error status msg))}))
 
 (defn nav-change
-  [route] (set-state! :curr-route route))
+  [route]
+  (set-state! :curr-route route)
+  (set-state! :nav-collapsed? false))
 
 (defn nav-toggle-collapse
   [] (update-state! :nav-collapsed? not))
@@ -122,21 +124,25 @@
 (defn set-heatmap-key
   [id]
   (set-state! :heatmap-key (keyword id))
-  (compute-borough-limits))
+  (compute-borough-stats))
 
 (defn apply-query-preset
   [id]
   (set-state! :query (get-in query-presets [id :query]))
   (set-state! :query-preset id))
 
-(defn compute-borough-limits
+(defn compute-borough-stats
   []
   (let [boroughs (-> @app-state :boroughs :data vals)
         key      (:heatmap-key @app-state)]
     (update-state!
      :boroughs merge
-     {:min (reduce min (map key boroughs))
-      :max (reduce max (map key boroughs))})))
+     {:min       (reduce min (map key boroughs))
+      :max       (reduce max (map key boroughs))
+      :total-min (reduce min (map :min boroughs))
+      :total-max (reduce max (map :max boroughs))
+      :total-avg (/ (reduce + (map :avg boroughs)) (count boroughs))
+      :total-num (reduce + (map :num boroughs))})))
 
 (defn process-borough
   [{:syms [?apoly ?avg ?min ?max ?num ?boroughID ?aname]}]
@@ -159,7 +165,7 @@
   [boroughs]
   (let [boroughs (map (comp process-borough first val) boroughs)]
     (set-state! :boroughs {:data (zipmap (map :id boroughs) boroughs)})
-    (compute-borough-limits)))
+    (compute-borough-stats)))
 
 (defn parse-boroughs-query-response
   [response]

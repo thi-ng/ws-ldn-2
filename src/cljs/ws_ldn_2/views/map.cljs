@@ -41,7 +41,7 @@
   (when selected
     (let [{:keys [centroid name id avg min max num]} (data selected)
           centroid (g/min (g/max centroid [120 100]) [840 720])
-          ff #(utils/format-currency % 2 "," ".")]
+          ff utils/format-gbp]
       (svg/group
        {:key "overlay" :transform (g/translate mat/M32 centroid)
         :stroke "none"}
@@ -110,4 +110,12 @@
             data selected min max
             state/select-borough
             @heatmap-id
-            @heatmap-key]]]]))))
+            @heatmap-key]]]
+         [:div.row
+          [:div.col-xs-12
+           [:table.table.table-condensed
+            [:tbody
+             [:tr [:th "Total sales:"] [:td (:total-num @boroughs)]]
+             [:tr [:th "Total average price:"] [:td "£" (utils/format-gbp (:total-avg @boroughs))]]
+             [:tr [:th "Total min price:"] [:td "£" (utils/format-gbp (:total-min @boroughs))]]
+             [:tr [:th "Total max price:"] [:td "£" (utils/format-gbp (:total-max @boroughs))]]]]]]]))))

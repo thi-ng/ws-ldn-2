@@ -11,10 +11,12 @@
       (recur (aget obj (first path)) (next path))
       obj)))
 
-(defn format-currency
+(defn format-decimal
   [x prec thousands frac]
   (str/replace
    (str
     (if (neg? x) "-")
     (str/replace (.toFixed (Math/abs x) prec) #"(\d)(?=(\d{3})+\.)" (str "$1" thousands)))
    "." frac))
+
+(defn format-gbp [x] (format-decimal x 2 "," "."))
