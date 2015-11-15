@@ -4,6 +4,7 @@
    [cljsjs.codemirror :as cm]
    [cljsjs.codemirror.addon.edit.matchbrackets]
    [cljsjs.codemirror.addon.edit.closebrackets]
+   [cljsjs.codemirror.addon.selection.active-line]
    [cljsjs.codemirror.mode.clojure]))
 
 (defn cm-editor

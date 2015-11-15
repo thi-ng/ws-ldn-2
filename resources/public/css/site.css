@@ -1,6 +1,7 @@
 .CodeMirror {
     font-family: "Inconsolata",Menlo,monospace !important;
     margin-bottom: 1em;
+    height: 400px;
 }
 
 .fullwidth {
