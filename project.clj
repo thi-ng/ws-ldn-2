@@ -11,7 +11,6 @@
                   [thi.ng/validate "0.1.3"]
                   [thi.ng/domus "0.2.0"]
                   [cljsjs/codemirror "5.7.0-3"]
-                  [ring-cors "0.1.7"]
                   [reagent "0.5.1"]
                   [cljs-log "0.2.2"]
                   [criterium "0.4.3"]]
