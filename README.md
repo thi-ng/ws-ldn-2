@@ -4,6 +4,8 @@
 
 This repo contains a subset of commented examples created during the workshop.
 
+**Note: WIP - repo still undergoing updates, code might be temporarily broken...**
+
 [Workshop notes & references](workshop.org)
 
 # Example app
