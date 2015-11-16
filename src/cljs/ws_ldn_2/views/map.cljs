@@ -10,8 +10,6 @@
    [thi.ng.geom.core :as g]
    [thi.ng.geom.core.matrix :as mat]
    [thi.ng.geom.svg.core :as svg]
-   [thi.ng.geom.svg.adapter :as svgadapt]
-   [thi.ng.geom.viz.core :as viz]
    [thi.ng.color.core :as col]
    [thi.ng.color.gradients :as grad]
    [thi.ng.math.core :as m]
@@ -83,25 +81,66 @@
      (doall (map (heatmap-polygon selected hover heatmap heatmap-key) (vals data)))
      (map-overlay data selected))))
 
+(defn stats-totals
+  []
+  (let [totals (state/subscribe [:boroughs :totals])]
+    (fn []
+      (let [{:keys [num avg min max]} @totals]
+        [:div.row
+         [:div.col-xs-12
+          [:table.table.table-condensed
+           [:tbody
+            [:tr
+             [:th "Total sales:"]
+             [:td (utils/format-decimal num 0 "," "")]]
+            [:tr
+             [:th "Total average price:"]
+             [:td "£" (utils/format-gbp avg)]]
+            [:tr
+             [:th "Total min price:"]
+             [:td "£" (utils/format-gbp min)]]
+            [:tr
+             [:th "Total max price:"]
+             [:td "£" (utils/format-gbp max)]]]]]]))))
+
+(defn borough-charts
+  []
+  (let [charts   (state/subscribe :charts)
+        boroughs (state/subscribe [:boroughs :data])]
+    (fn []
+      [:div
+       [:h2 "Property sales per borough"]
+       (let [boroughs @boroughs]
+         (->> @charts
+              (map
+               (fn [[id chart]]
+                 [:div.col-xs-12.col-md-4 {:key (str id "-chart")}
+                  [:div.thumbnail
+                   chart
+                   [:div.caption
+                    [:h4 (get-in boroughs [id :name])]]]]))
+              (partition-all 3)
+              (map-indexed
+               (fn [i row]
+                 (into [:div.row {:key (str "stats-row-" i)}] row)))))])))
+
 (defn heatmap-view
   []
   (let [boroughs    (state/subscribe :boroughs)
         heatmap-id  (state/subscribe :heatmap-id)
-        heatmap-key (state/subscribe :heatmap-key)
-        cache       (state/subscribe :query-cache)]
+        heatmap-key (state/subscribe :heatmap-key)]
     (fn []
-      (let [{:keys [data selected min max]} @boroughs
-            cache @cache]
+      (let [{:keys [data selected min max]} @boroughs]
         [:div.container
          [:div.row
           [:div.col-xs-6
            [:h1 "London heatmap"]]
-          [:div.col-xs-3 {:style {:margin-top "22px"}}
+          [:div.col-xs-3.form-align
            [dd/dropdown
             @heatmap-id
             #(state/set-heatmap-key (utils/event-value-id %))
             state/heatmap-types]]
-          [:div.col-xs-3 {:style {:margin-top "22px"}}
+          [:div.col-xs-3.form-align
            [dd/dropdown
             @heatmap-id
             #(state/set-heatmap-id (utils/event-value-id %))
@@ -113,57 +152,5 @@
             state/select-borough
             @heatmap-id
             @heatmap-key]]]
-         [:div.row
-          [:div.col-xs-12
-           [:table.table.table-condensed
-            [:tbody
-             [:tr [:th "Total sales:"] [:td (utils/format-decimal (:total-num @boroughs) 0 "," "")]]
-             [:tr [:th "Total average price:"] [:td "£" (utils/format-gbp (:total-avg @boroughs))]]
-             [:tr [:th "Total min price:"] [:td "£" (utils/format-gbp (:total-min @boroughs))]]
-             [:tr [:th "Total max price:"] [:td "£" (utils/format-gbp (:total-max @boroughs))]]]]]]
-         (->> (vals (:data @boroughs))
-              (map
-               (fn [b]
-                 [:div.col-xs-4 {:key (str (:id b) "-stats")}
-                  [:div.thumbnail
-                   (when-let [data (seq (cache (:id b)))]
-                     (let [data  (map #(get % '?price) data)
-                           len   (count data)
-                           min-v (reduce cljs.core/min data)
-                           max-v (reduce cljs.core/max data)
-                           spec  {:x-axis (viz/linear-axis
-                                           {:domain      [0 len]
-                                            :range       [40 220]
-                                            :major       200
-                                            :minor       100
-                                            :pos         100
-                                            :label       (viz/default-svg-label int)
-                                            :label-style {:style {:font-size "9px"}}
-                                            :attribs     {:stroke-width "0.5px"}})
-                                  :y-axis (viz/log-axis
-                                           {:domain      [min-v max-v]
-                                            :range       [100 5]
-                                            :pos         40
-                                            :label-dist  15
-                                            :label       (viz/default-svg-label utils/format-k)
-                                            :label-style {:style {:font-size "9px"} :text-anchor "end"}
-                                            :label-y     3
-                                            :attribs     {:stroke-width "0.5px"}})
-                                  :grid   {:attribs {:stroke "#ccc" :stroke-width "0.5px"}
-                                           :minor-y true}
-                                  :data   [{:values  (map-indexed vector data)
-                                            :attribs {:fill "none" :stroke "url(#grad)" :stroke-width "0.5px"}
-                                            :layout  viz/svg-line-plot}]}]
-                       (->> spec
-                            (viz/svg-plot2d-cartesian)
-                            (svg/svg
-                             {:width "100%" :viewBox "0 0 240 120"}
-                             (svg/linear-gradient
-                              "grad" {:gradientTransform "rotate(90)"}
-                              [0 (col/css "#f03")] [1 (col/css "#0af")]))
-                            (svgadapt/inject-element-attribs svgadapt/key-attrib-injector))))
-                   [:div.caption
-                    [:h5 (:name b)]]]]))
-              (partition-all 3)
-              (map-indexed
-               (fn [i row] (into [:div.row {:key (str "stats-row-" i)}] row))))]))))
+         [stats-totals]
+         [borough-charts]]))))

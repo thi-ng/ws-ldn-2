@@ -5,11 +5,15 @@
    [cljs.core.async.macros :refer [go go-loop]])
   (:require
    [ws-ldn-2.map-project :as mp]
+   [ws-ldn-2.utils :as utils]
    [reagent.core :as r]
    [thi.ng.strf.core :as f]
    [thi.ng.geom.core.vector :as v]
    [thi.ng.geom.core.utils :as gu]
    [thi.ng.geom.svg.core :as svg]
+   [thi.ng.geom.svg.adapter :as svgadapt]
+   [thi.ng.geom.viz.core :as viz]
+   [thi.ng.color.core :as col]
    [thi.ng.math.core :as m]
    [thi.ng.domus.io :as io]
    [cljs.core.async :as async]
@@ -73,12 +77,12 @@
 
 (defn set-state!
   [key val]
-  (info key val)
+  (debug key val)
   (swap! app-state (if (sequential? key) assoc-in assoc) key val))
 
 (defn update-state!
   [key f & args]
-  (info key args)
+  (debug key args)
   (swap! app-state #(apply (if (sequential? key) update-in update) % key f args)))
 
 (defn subscribe
@@ -122,7 +126,13 @@
   [] (update-state! :nav-open? not))
 
 (defn set-init-state
-  [id] (set-state! :init-state id))
+  ([id]
+   (set-state! :init-state {:id id}))
+  ([id progress total]
+   (set-state! :init-state {:id id :progress progress :total total})))
+
+(defn update-init-state-progress
+  [] (update-state! [:init-state :progress] inc))
 
 (defn set-query
   [q] (set-state! :query q))
@@ -162,64 +172,107 @@
      :min      ?min
      :max      ?max}))
 
-(defn generate-borough-charts
-  [boroughs]
-  (set-state! :query-cache boroughs))
+(defn borough-price-chart
+  [[id results]]
+  (let [data  (mapv #(% '?price) results)
+        len   (count data)
+        min-v (reduce min data)
+        max-v (reduce max data)
+        maj-x (if (> len 200) 200 50)
+        spec  {:x-axis (viz/linear-axis
+                        {:domain      [0 len]
+                         :range       [40 220]
+                         :major       maj-x
+                         :minor       (/ maj-x 2)
+                         :pos         100
+                         :label       (viz/default-svg-label int)
+                         :label-style {:style {:font-size "9px"}}
+                         :attribs     {:stroke-width "0.5px"}})
+               :y-axis (viz/log-axis
+                        {:domain      [min-v max-v]
+                         :range       [100 5]
+                         :pos         40
+                         :label-dist  15
+                         :label       (viz/default-svg-label utils/format-k)
+                         :label-style {:style {:font-size "9px"} :text-anchor "end"}
+                         :label-y     3
+                         :attribs     {:stroke-width "0.5px"}})
+               :grid   {:attribs {:stroke "#ccc" :stroke-width "0.5px"}
+                        :minor-y true}
+               :data   [{:values  (map-indexed vector data)
+                         :attribs {:fill "none" :stroke "url(#grad)" :stroke-width "0.5px"}
+                         :layout  viz/svg-line-plot}]}]
+    [id (->> spec
+             (viz/svg-plot2d-cartesian)
+             (svg/svg
+              {:width "100%" :viewBox "0 0 240 120"}
+              (svg/linear-gradient
+               "grad" {:gradientTransform "rotate(90)"}
+               [0 (col/css "#f03")] [1 (col/css "#0af")]))
+             (svgadapt/inject-element-attribs svgadapt/key-attrib-injector))]))
 
-(defn borough-stats-processor
-  [ch]
-  (go-loop []
-    (when-let [key (async/<! ch)]
-      (let [boroughs (-> @app-state :boroughs :data vals)]
-        (set-state! :heatmap-key key)
-        (update-state!
-         :boroughs merge
-         {:min       (reduce min (map key boroughs))
-          :max       (reduce max (map key boroughs))
-          :total-min (reduce min (map :min boroughs))
-          :total-max (reduce max (map :max boroughs))
-          :total-avg (/ (reduce + (map :avg boroughs)) (count boroughs))
-          :total-num (reduce + (map :num boroughs))})
-        (recur)))))
+(defn async-chart-generator
+  [results done]
+  (let [ch (async/chan)]
+    (go-loop []
+      (if-let [borough (async/<! ch)]
+        (do (update-init-state-progress)
+            (update-state! :charts conj (borough-price-chart borough))
+            (async/<! (async/timeout 17))
+            (recur))
+        (async/>! done true)))
+    (set-init-state :generate-charts 0 (count results))
+    (async/onto-chan ch results)))
 
-(defn borough-query-processor
-  [resp-chan stats-chan]
-  (go
-    (when-let [resp (async/<! resp-chan)]
-      (let [boroughs (map (comp process-borough first val) (:body resp))]
-        (set-state! :boroughs {:data (into (sorted-map) (zipmap (map :id boroughs) boroughs))})
-        (async/>! stats-chan (:heatmap-key @app-state))
-        (set-init-state :detail-query)
-        (submit-registered-query :borough-prices resp-chan)
-        (when-let [resp (async/<! resp-chan)]
-          (set-init-state :generate-charts)
-          (generate-borough-charts (:body resp))
-          (set-state! :ready? true))))))
+(defn async-borough-stats-processor
+  []
+  (let [ch (async/chan)]
+    (go-loop []
+      (when-let [key (async/<! ch)]
+        (let [boroughs (-> @app-state :boroughs :data vals)]
+          (set-state! :heatmap-key key)
+          (update-state!
+           :boroughs merge
+           {:min    (reduce min (map key boroughs))
+            :max    (reduce max (map key boroughs))
+            :totals {:min (reduce min (map :min boroughs))
+                     :max (reduce max (map :max boroughs))
+                     :avg (/ (reduce + (map :avg boroughs)) (count boroughs))
+                     :num (reduce + (map :num boroughs))}})
+          (recur))))
+    ch))
 
-(defn parse-borough-prices-response
-  [id]
-  (fn [{:keys [body]}]
-    (info :response body)
-    (set-state! [:query-cache id] body)
-    (set-state! :selected-borough-details body)))
+(defn async-initial-query-processor
+  []
+  (let [ch (async/chan)]
+    (go
+      (when-let [resp (async/<! ch)]
+        (let [boroughs (map (comp process-borough first val) (:body resp))
+              boroughs (into (sorted-map) (zipmap (map :id boroughs) boroughs))]
+          (set-state! :boroughs {:data boroughs})
+          (set-heatmap-key (:heatmap-key @app-state))
+          (set-init-state :detail-query)
+          (submit-registered-query :borough-prices ch)
+          (when-let [resp (async/<! ch)]
+            (async-chart-generator (:body resp) ch)
+            (async/<! ch)
+            (set-state! :ready? true)))))
+    ch))
 
 (defn select-borough
-  [id]
-  (set-state! [:boroughs :selected] id)
-  (set-state! :selected-borough-details (get-in @app-state [:query-cache id])))
+  [id] (set-state! [:boroughs :selected] id))
 
 (defn init-app
   []
-  (let [borough-chan (async/chan)
-        stats-chan   (async/chan)]
+  (let [init-chan  (async-initial-query-processor)
+        stats-chan (async-borough-stats-processor)]
     (swap! app-state merge
-           {:query                  (get-in query-presets [:boroughs :query])
-            :query-preset           :boroughs
-            :heatmap-id             :yellow-magenta-cyan
-            :heatmap-key            :avg
-            :inited                 true
-            :init-state             :init
-            :borough-stats-chan     stats-chan})
-    (borough-stats-processor stats-chan)
-    (borough-query-processor borough-chan stats-chan)
-    (submit-registered-query :boroughs borough-chan)))
+           {:query              (get-in query-presets [:boroughs :query])
+            :query-preset       :boroughs
+            :heatmap-id         :yellow-magenta-cyan
+            :heatmap-key        :avg
+            :inited             true
+            :init-state         :init
+            :charts             (sorted-map)
+            :borough-stats-chan stats-chan})
+    (submit-registered-query :boroughs init-chan)))
