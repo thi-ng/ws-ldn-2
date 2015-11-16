@@ -12,20 +12,24 @@
                   [thi.ng/domus "0.2.0"]
                   [cljsjs/codemirror "5.7.0-3"]
                   [reagent "0.5.1"]
-                  [cljs-log "0.2.2"]
-                  [criterium "0.4.3"]]
+                  [cljs-log "0.2.2"]]
 
   :plugins       [[lein-figwheel "0.5.0-SNAPSHOT"]
                   [lein-cljsbuild "1.1.1"]
                   [lein-environ "1.0.0"]]
 
-  :jvm-opts      ^:replace ["-Xms768M" "-Xmx1280M"]
+  :jvm-opts      ^:replace ["-Xms768m" "-Xmx1280m"]
+
+  :main          ^:skip-aot ws-ldn-2.core
+
+  :repl-options  {:init-ns ws-ldn-2.core}
 
   :source-paths  ["src/clj" "src/cljs"]
 
   :clean-targets ^{:protect false} ["target" "resources/public/js"]
 
-  :profiles      {:prod {:env {:log-level 4}}}
+  :profiles      {:dev  {:dependencies [[criterium "0.4.3"]]}
+                  :prod {:env {:log-level 4}}}
 
   :cljsbuild     {:builds [{:id           "dev"
                             :source-paths ["src/cljs"]

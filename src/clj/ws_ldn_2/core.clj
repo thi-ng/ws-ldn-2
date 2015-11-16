@@ -82,16 +82,21 @@
     (clojure.pprint/pprint config)
     (alter-var-root #'system (constantly (ld/make-system config)))))
 
-(defn start []
-  (alter-var-root #'system comp/start))
+(defn start
+  [] (alter-var-root #'system comp/start))
 
-(defn stop []
-  (alter-var-root #'system (fn [s] (when s (comp/stop s)))))
+(defn stop
+  [] (alter-var-root #'system (fn [s] (when s (comp/stop s)))))
 
-(defn launch []
+(defn launch
+  []
   (init)
   (start))
 
-(defn reset []
+(defn reset
+  []
   (stop)
   (refresh :after 'ws-ldn-2.core/launch))
+
+(defn -main
+  [& args] (launch))
