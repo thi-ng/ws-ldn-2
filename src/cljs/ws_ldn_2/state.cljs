@@ -24,7 +24,7 @@
 (def query-presets
   {:custom
    {:query "{:prefixes {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
- :q        [{:where [?s ?p ?o]}]
+ :q        [{:where [[?s ?p ?o]]}]
  :order    ?s
  :select   :*
 }"
@@ -58,7 +58,7 @@
                      [?s \"schema:purchaseDate\" ?date]
                      [?s \"ws:onsID\" ?boroughID]
                      [?borough \"rdfs:label\" ?boroughID]]}]
- :filter   (= \"{BOROUGH_ID}\" ?boroughID)
+ :filter   (= \"E09000001\" ?boroughID)
  :order    ?date
  :select   [?price ?date]
 }"
@@ -147,7 +147,37 @@
   (->> {:spec (:query @app-state) :format "png"}
        (io/->request-data)
        (str "/queryviz?")
-       (set-state! :query-viz-uri)))
+       (set-state! :query-viz-uri))
+  (set-state! :user-query-results nil))
+
+(defn prepare-user-query-results
+  [results]
+  (let [grouped (get-in results [:spec :group-by])
+        body    (:body results)
+        qvars   (if grouped
+                  (->> grouped
+                       (disj (into (sorted-set) (keys (first (val (first body))))))
+                       (vec)
+                       (cons grouped)
+                       (vec))
+                  (vec (into (sorted-set) (keys (first body)))))
+        body    (if grouped
+                  (mapcat (fn [[k vals]] (map #(assoc % grouped k) vals)) body)
+                  body)]
+    {:grouped grouped
+     :qvars   qvars
+     :body    body}))
+
+(defn submit-user-query
+  []
+  (let [ch (async/chan)]
+    (submit-oneoff-query (:query @app-state) ch)
+    (set-state! :query-viz-uri nil)
+    (go
+      (when-let [results (async/<! ch)]
+        (->> results
+             (prepare-user-query-results)
+             (set-state! :user-query-results))))))
 
 (defn set-heatmap-id
   [id] (set-state! :heatmap-id (keyword id)))

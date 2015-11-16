@@ -11,3 +11,7 @@
 .form-align {
     margin-top: 24px;
 }
+
+table.query-results {
+    font-size: 11px;
+}
