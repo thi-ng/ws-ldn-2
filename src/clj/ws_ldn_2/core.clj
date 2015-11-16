@@ -4,57 +4,67 @@
    [thi.ng.fabric.ld.core :as ld]
    [thi.ng.fabric.facts.queryviz :as qviz]
    [thi.ng.validate.core :as v]
-   [compojure.core :as compojure :refer [GET POST DELETE]]
+   [compojure.core :refer [GET]]
    [com.stuartsierra.component :as comp]
    [ring.util.response :as resp]
    [ring.util.mime-type :as mime]
-   [ring.middleware.cors :refer [wrap-cors]]
    [clojure.java.shell :refer [sh]]
    [clojure.java.io :as io]
    [clojure.tools.namespace.repl :refer (refresh)]
    [taoensso.timbre :refer [debug info warn]])
   (:import
-   [java.io StringBufferInputStream ByteArrayInputStream]))
+   [java.io StringBufferInputStream ByteArrayInputStream]
+   [java.util.zip GZIPInputStream]))
 
 ;; additional HTTP handlers
 
+(defn homepage-redirect
+  "Simple 302 redirect handler for / route."
+  [& _]
+  (GET "/" [] (fn [req] {:status 302 :headers {"Location" "/index.html"}})))
+
 (defn queryviz-handler
   "Higher order handler fn for visualizing fabric query spec using Graphviz dot.
-  Fn is first called during system setup and provided with graph
-  model, prefix, query and inference rule registries. Returns actual handler fn."
-  [model prefixes queries rules]
-  (fn [req]
-    (ld/validating-handler
-     req
-     ;; request param coercions
-     {:spec   :edn}
-     ;; request param validation spec
-     {:spec   :query
-      :format (v/member-of #{"png" "jpg" "svg"})}
-     ;; actual handler (only executed if validation succeeds)
-     (fn [_ {:keys [spec format] :as params}]
-       (let [query     (ld/transform-query model spec)
-             ;; generate graphviz source from query spec
-             ;; http://graphviz.org/pdf/dotguide.pdf
-             dot       (qviz/query->graphviz query)
-             ;; call graphviz dot shell command with generated string
-             ;; as input and capture output as byte array
-             ;; http://clojuredocs.org/clojure.java.shell/sh
-             img-bytes (:out (sh "dot"
-                                 (str "-T" format)
-                                 :in (StringBufferInputStream. dot)
-                                 :out-enc :bytes))]
-         ;; response map with image bytes as input stream
-         ;; mime type set based on given image format
-         ;; https://github.com/ring-clojure/ring
-         ;; https://github.com/ring-clojure/ring/blob/master/SPEC
-         {:status  200
-          :body    (ByteArrayInputStream. img-bytes)
-          :headers {"Content-type" (mime/default-mime-types format)}})))))
+  Fn is first called during fabric.ld system setup and provided with
+  handler config, graph model, prefix, query and inference rule
+  registries. Returns actual handler fn."
+  [_ model _ _ _]
+  (GET "/queryviz" []
+       (fn [req]
+         (ld/validating-handler
+          req
+          ;; request param coercions
+          {:spec   :edn}
+          ;; request param validation spec
+          {:spec   :query
+           :format (v/member-of #{"png" "jpg" "svg"})}
+          ;; actual handler (only executed if validation succeeds)
+          (fn [_ {:keys [spec format] :as params}]
+            (let [query     (ld/transform-query model spec)
+                  ;; generate graphviz source from query spec
+                  ;; http://graphviz.org/pdf/dotguide.pdf
+                  dot       (qviz/query->graphviz query)
+                  ;; call graphviz dot shell command with generated string
+                  ;; as input and capture output as byte array
+                  ;; http://clojuredocs.org/clojure.java.shell/sh
+                  img-bytes (:out (sh "dot"
+                                      (str "-T" format)
+                                      :in (StringBufferInputStream. dot)
+                                      :out-enc :bytes))]
+              ;; response map with image bytes as input stream
+              ;; mime type set based on given image format
+              ;; https://github.com/ring-clojure/ring
+              ;; https://github.com/ring-clojure/ring/blob/master/SPEC
+              {:status  200
+               :body    (ByteArrayInputStream. img-bytes)
+               :headers {"Content-type" (mime/default-mime-types format)}}))))))
 
 ;; component system lifecycle control fns
 
 (def system "Component system map" nil)
+
+(defn gzip-input-stream
+  [path] (-> path io/resource io/input-stream GZIPInputStream.))
 
 (defn init
   "Initializes custom fabric.ld component system based on default config,
@@ -63,14 +73,10 @@
   (let [config (merge-with
                 utils/deep-merge
                 (ld/default-config)
-                {:graph   {:import ^:replace [(io/resource "data/london-boroughs.nt")
-                                              (io/resource "data/sales-2013-xl.edn")]}
+                {:graph   {:import ^:replace [[:ntriples (gzip-input-stream "data/london-boroughs.nt.gz")]
+                                              [:edn      (gzip-input-stream "data/sales-2013.edn.gz")]]}
                  :queries {:specs (read-string (slurp (io/resource "data/queries.edn")))}
-                 :handler {:inject-routes [[:get "/queryviz" queryviz-handler]
-                                           [:get "/" (constantly
-                                                      (fn [req]
-                                                        {:status 302
-                                                         :headers {"Location" "/index.html"}}))]]}
+                 :handler {:inject-routes [queryviz-handler homepage-redirect]}
                  :log     {:fn (fn [_ _] (fn [_]))}})]
     (taoensso.timbre/set-level! :info)
     (clojure.pprint/pprint config)

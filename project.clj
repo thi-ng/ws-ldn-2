@@ -7,7 +7,7 @@
                   [org.clojure/clojurescript "1.7.170"]
                   [org.clojure/core.async "0.2.371"]
                   [thi.ng/geom "0.0.908"]
-                  [thi.ng/fabric "0.0.386"]
+                  [thi.ng/fabric "0.0.388"]
                   [thi.ng/validate "0.1.3"]
                   [thi.ng/domus "0.2.0"]
                   [cljsjs/codemirror "5.7.0-3"]

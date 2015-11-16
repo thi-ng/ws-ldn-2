@@ -5,14 +5,15 @@
    [clojure.data.csv :as csv]
    [clojure.java.io :as io])
   (:import
+   [java.util.zip GZIPInputStream GZIPOutputStream]
    [java.text SimpleDateFormat]))
 
 (def df (SimpleDateFormat. "dd-MMM-yy"))
 
 (defn load-csv-resource
   "Takes CSV source (path, URI or stream) and returns parsed CSV as vector of rows"
-  [path]
-  (let [data (-> path
+  [in]
+  (let [data (-> in
                  (io/reader)
                  (csv/read-csv :separator \,))]
     (println (count data) "rows loaded")
@@ -81,10 +82,12 @@
 
 (comment
 
-  (->> "data/london-sales-2013-2014.csv"
+  (->> "data/london-sales-2013-2014.csv.gz"
        (io/resource)
+       (io/input-stream)
+       (GZIPInputStream.)
        (load-house-sales)
        (take-nth 10)
-       (write-triples-edn (io/resource "data/sales-2013.edn"))
+       (write-triples-edn (-> "data/sales-2013.edn.gz" io/resource io/output-stream GZIPOutputStream.))
        (time))
   )
