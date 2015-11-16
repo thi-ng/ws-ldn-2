@@ -32,7 +32,7 @@
 
    :boroughs
    {:query "{:prefixes  {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
- :q         [{:where [[?s \"rdf:type\" \"schema:TradeAction\"]
+ :q         [{:where [[?s \"rdf:type\" \"schema:SellAction\"]
                       [?s \"schema:price\" ?price]
                       [?s \"schema:purchaseDate\" ?date]
                       [?s \"schema:postalCode\" ?zip]
@@ -53,7 +53,7 @@
 
    :single-borough
    {:query "{:prefixes {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
- :q        [{:where [[?s \"rdf:type\" \"schema:TradeAction\"]
+ :q        [{:where [[?s \"rdf:type\" \"schema:SellAction\"]
                      [?s \"schema:price\" ?price]
                      [?s \"schema:purchaseDate\" ?date]
                      [?s \"ws:onsID\" ?boroughID]

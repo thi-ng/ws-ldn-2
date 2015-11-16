@@ -258,7 +258,7 @@ Replace YOUR_API_KEY & INIT_FN
 
 #+BEGIN_SRC clojure
   {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+   :q [{:where [[?s "rdf:type" "schema:SellAction"]
                 [?s "schema:price" ?price]
                 [?s "schema:purchaseDate" ?date]
                 [?s "schema:postalCode" ?zip]
@@ -273,7 +273,7 @@ Replace YOUR_API_KEY & INIT_FN
    }
 
   {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+   :q [{:where [[?s "rdf:type" "schema:SellAction"]
                 [?s "schema:price" ?price]
                 [?s "schema:purchaseDate" ?date]
                 [?s "schema:postalCode" ?zip]
@@ -283,7 +283,7 @@ Replace YOUR_API_KEY & INIT_FN
    :select [?zip ?price ?date ?boroughID ?poly]}
 
   {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+   :q [{:where [[?s "rdf:type" "schema:SellAction"]
                 [?s "schema:price" ?price]
                 [?s "schema:purchaseDate" ?date]
                 [?s "schema:postalCode" ?zip]
@@ -298,7 +298,7 @@ Replace YOUR_API_KEY & INIT_FN
 
 
   {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:TradeAction"]
+   :q [{:where [[?s "rdf:type" "schema:SellAction"]
                 [?s "schema:price" ?price]
                 [?s "schema:purchaseDate" ?date]
                 [?s "schema:postalCode" ?zip]
