@@ -85,6 +85,6 @@
        (io/resource)
        (load-house-sales)
        (take-nth 10)
-       (write-triples-edn "data/sales-2013.edn")
+       (write-triples-edn (io/resource "data/sales-2013.edn"))
        (time))
   )
