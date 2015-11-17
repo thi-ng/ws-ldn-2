@@ -6,14 +6,10 @@ This repo contains a subset of commented examples created during the workshop.
 
 ## Report
 
-A slightly wordy report with lots of references can be found here:
+A slightly wordy (3k) report with lots of references can be found here:
 https://medium.com/@thi.ng/workshop-report-building-linked-data-heatmaps-with-clojurescript-thi-ng-102e0581225c
 
-## Status
-
-This repo is still WIP and is missing source comments and corrections in the other documentation file below.
-
-[Workshop notes & references](workshop.org)
+..and some more [workshop notes & further reading links](workshop.org)
 
 ## Example app
 
@@ -32,23 +28,27 @@ This heatmap is based on the number of property sales, showing a clear bias in t
 
 ![London house sales (count) 2013/14](assets/ldn-heatmap-count.jpg)
 
+The example app also includes an in-browser query editor (using
+[CodeMirror](http://codemirror.net)) with result table display and
+query structure visualization.
+
 ## Running the project
 
 ```
 git clone https://github.com/thi-ng/ws-ldn-2.git
 cd ws-ldn-2
-lein run
+lein trampoline run
 
 # open another terminal using same directory
 lein fighweel dev
 
-# once compilation is complete...
+# once fabric server is running CLJS compilation is complete...
 # open http://localhost:8000 in your browser
 ```
 
 ## CLJS build w/ advanced optimizations
 
-Run the following command to build the CLJS examples with advanced optimizations:
+Run the following command to build the CLJS sources with advanced optimizations:
 
 ```
 lein do clean, cljsbuild once min
