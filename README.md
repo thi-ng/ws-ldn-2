@@ -6,10 +6,8 @@ This repo contains a subset of commented examples created during the workshop.
 
 ## Report
 
-A slightly wordy (3k) report with lots of references can be found here:
-https://medium.com/@thi.ng/workshop-report-building-linked-data-heatmaps-with-clojurescript-thi-ng-102e0581225c
-
-..and some more [workshop notes & further reading links](workshop.org)
+- [workshop report](https://medium.com/@thi.ng/workshop-report-building-linked-data-heatmaps-with-clojurescript-thi-ng-102e0581225c) - a slightly wordy (3k) report with lots of references
+- [notes & further reading links](workshop.org)
 
 ## Example app
 
