@@ -1,3 +1,6 @@
+;; queries added to compute graph on system start
+;; results for these queries are automatically updating whenever their
+;; matching fact sets are changing...
 {"boroughs"
  {:prefixes  {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
   :q         [{:where [[?s "rdf:type" "schema:SellAction"]

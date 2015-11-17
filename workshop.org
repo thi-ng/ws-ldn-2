@@ -153,9 +153,9 @@ Advanced core.async operations:
    ORDER BY ASC(?id)
  #+END_SRC
 
-Same query for [[http://thi.ng/fabric][thi.ng/fabric]]: (doesn't include
-=sdef:statistical-geography= and =sg:parentcode= sub-queries, since we
-didn't use those in the =CONSTRUCT= phase of the above query:
+Query for [[http://thi.ng/fabric][thi.ng/fabric]]: (doesn't include =sdef:statistical-geography=
+and =sg:parentcode= sub-queries, since we didn't use those in the
+=CONSTRUCT= phase of the above query:
 
 #+BEGIN_SRC clojure
   {:prefixes {"rdf"  "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -171,20 +171,20 @@ didn't use those in the =CONSTRUCT= phase of the above query:
 
 ****** DBpedia
 
- - http://dbpedia.org/sparql
+ - http://dbpedia.org/sparql (choose HTML output)
 
- #+BEGIN_SRC sparql
-   PREFIX dbo: <http://dbpedia.org/ontology/>
-   PREFIX dbr: <http://dbpedia.org/resource/>
+#+BEGIN_SRC sparql
+  PREFIX dbo: <http://dbpedia.org/ontology/>
+  PREFIX dbr: <http://dbpedia.org/resource/>
 
-   SELECT DISTINCT ?p
-   WHERE {
-     ?p a dbo:MusicalArtist ;
-     dbo:genre dbr:Techno ;
-     dbo:birthPlace ?bp .
-     ?bp dbo:country dbr:Germany
-   }
- #+END_SRC
+  SELECT DISTINCT ?p
+  WHERE {
+    ?p a dbo:MusicalArtist ;
+    dbo:genre dbr:Techno ;
+    dbo:birthPlace ?bp .
+    ?bp dbo:country dbr:Germany
+  }
+#+END_SRC
 
 **** Books
 
@@ -246,73 +246,11 @@ Replace YOUR_API_KEY & INIT_FN
 2) http://data.london.gov.uk/dataset/average-house-prices-borough
    (Each house sale in London 1995-2014, 190MB CSV, link near bottom of page)
 
-
 ** Launching server from REPL
 
 #+BEGIN_SRC clojure
-  (require '[ws-ldn-2.day2.core])
-  (in-ns 'ws-ldn-2.day2.core)
+  (require '[ws-ldn-2.core])
+  (in-ns 'ws-ldn-2.core)
 
   (launch)
-#+END_SRC
-
-#+BEGIN_SRC clojure
-  {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:SellAction"]
-                [?s "schema:price" ?price]
-                [?s "schema:purchaseDate" ?date]
-                [?s "schema:postalCode" ?zip]
-                [?s "ws:onsID" ?borough]
-                [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
-   :aggregate {?avg (agg-avg ?price)
-               ?min (agg-min ?price)
-               ?max (agg-max ?price)
-               ?uzip (agg-count ?zip)}
-   :group-by  ?date
-   :select [?uzip]
-   }
-
-  {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:SellAction"]
-                [?s "schema:price" ?price]
-                [?s "schema:purchaseDate" ?date]
-                [?s "schema:postalCode" ?zip]
-                [?s "ws:onsID" ?boroughID]
-                [?borough "rdfs:label" ?boroughID]
-                [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
-   :select [?zip ?price ?date ?boroughID ?poly]}
-
-  {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:SellAction"]
-                [?s "schema:price" ?price]
-                [?s "schema:purchaseDate" ?date]
-                [?s "schema:postalCode" ?zip]
-                [?s "ws:onsID" ?boroughID]
-                [?borough "rdfs:label" ?boroughID]
-                [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
-   :aggregate {?num (agg-count ?s)
-               ?avg (agg-avg ?price)
-               ?apoly (agg-collect ?poly)}
-   :group-by ?boroughID
-   :select [?boroughID ?apoly ?num ?avg]}
-
-
-  {:prefixes {"sg" "http://statistics.data.gov.uk/def/statistical-geography#"}
-   :q [{:where [[?s "rdf:type" "schema:SellAction"]
-                [?s "schema:price" ?price]
-                [?s "schema:purchaseDate" ?date]
-                [?s "schema:postalCode" ?zip]
-                [?s "ws:onsID" ?boroughID]
-                [?borough "rdfs:label" ?boroughID]
-                [?borough "sg:officialName" ?name]
-                [?borough "sg:hasExteriorLatLongPolygon" ?poly]]}]
-   :aggregate {?num (agg-count ?s)
-               ?avg (agg-avg ?price)
-               ?apoly (agg-collect ?poly)
-               ?aname (agg-collect ?name)}
-   ;;:filter   (= "E09000027" ?boroughID)
-   :group-by ?boroughID
-   :select [?boroughID ?apoly ?avg ?num ?aname]}
-
-  {"E...." #{{?boroughID "E..." ?apoly #{"...."} ?num 123 ?avg 456}}
 #+END_SRC

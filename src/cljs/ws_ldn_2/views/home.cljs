@@ -4,7 +4,8 @@
    [cljs-log.core :refer [debug info warn]]))
 
 (defn ^:export home
-  [route]
+  "Home page component"
+  [_]
   [:div.container
    [:h1 "Welcome to our example app"]
    [:div.row

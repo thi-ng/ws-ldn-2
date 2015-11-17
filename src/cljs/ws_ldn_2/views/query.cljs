@@ -17,6 +17,7 @@
      (map (fn [q] [:td {:key (str k "-" q)} (pr-str (row q))]) qvars)]))
 
 (defn query-results-table
+  "User query results table component."
   [table]
   (when table
     (let [{:keys [body qvars grouped]} table]
@@ -34,6 +35,8 @@
            body)]]]])))
 
 (defn query-viz
+  "Query viz component displaying structure of query in editor.
+  Only active when :query-viz-uri is set in app-state."
   []
   (let [src (state/subscribe :query-viz-uri)]
     (fn []
@@ -44,6 +47,7 @@
           [:img.fullwidth {:src @src}]]]))))
 
 (defn ^:export query-editor
+  "Main component for query view/route"
   [route]
   (let [query    (state/subscribe :query)
         q-preset (state/subscribe :query-preset)
@@ -74,6 +78,7 @@
           "Visualize"]]
         [:div.col-xs-6
          [dd/dropdown
+          "dd-query-preset"
           @q-preset
           #(state/set-query-preset (utils/event-value-id %))
           state/query-presets]]]

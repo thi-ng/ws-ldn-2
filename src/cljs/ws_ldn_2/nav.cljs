@@ -6,8 +6,10 @@
    [ws-ldn-2.router :as router]))
 
 (defn nav-bar
+  "Bootstrap navbar component. Takes vector of routes to display and
+  current route (to highlight)."
   [routes route]
-  (let [open? (reaction (:nav-open? @state/app-state))]
+  (let [open? (state/subscribe :nav-open?)]
     [:nav.navbar.navbar-default
      [:div.container-fluid
       [:div.navbar-header

@@ -19,9 +19,8 @@
    [cljs.core.async :as async]
    [clojure.string :as str]))
 
-(declare compute-borough-stats)
-
 (def query-presets
+  "Presets for query editor component"
   {:custom
    {:query "{:prefixes {\"sg\" \"http://statistics.data.gov.uk/def/statistical-geography#\"}
  :q        [{:where [[?s ?p ?o]]}]
@@ -65,33 +64,51 @@
     :label "House prices (single borough)"}})
 
 (def heatmap-types
+  "Available heatmap types"
   {:avg {:label "Average sale price"}
    :num {:label "Number of sales"}})
 
 (def init-states
-  {:init            "Initializing..."
-   :detail-query    "Loading borough details..."
-   :generate-charts "Generating charts..."})
+  "Map of init states and their descriptions (used during start up,
+  see app-component in core ns"
+  {:init             "Initializing..."
+   :process-polygons "Processing polygons..."
+   :generate-charts  "Generating charts..."})
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Global application state & helpers
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defonce app-state (r/atom {}))
 
 (defn set-state!
+  "Helper fn to reset app-state for given key. Key can be single
+  keyword or path vector."
   [key val]
   (debug key val)
   (swap! app-state (if (sequential? key) assoc-in assoc) key val))
 
 (defn update-state!
+  "Helper fn to update app-state value for given key. Key can be single
+  keyword or path vector. Behaves like clojure.core/update or update-in"
   [key f & args]
   (debug key args)
   (swap! app-state #(apply (if (sequential? key) update-in update) % key f args)))
 
 (defn subscribe
+  "Helper fn to create a reagent reaction for given app-state key/path."
   [key]
   (if (sequential? key)
     (reaction (get-in @app-state key))
     (reaction (@app-state key))))
 
+;; TODO add error handling
 (defn do-request
+  "Helper fn to perform XHR request. Takes request options map and
+  core.async channel. On successful response, places response data on
+  channel."
   [spec ch]
   (->> {:success (fn [status data]
                    (set-state! :raw-query-result data)
@@ -101,6 +118,8 @@
        (io/request)))
 
 (defn submit-registered-query
+  "Submits GET request to a registered fabric.ld query. Accepts query
+  id, result channel and any number of keyword options (form params)."
   [id ch & opts]
   (do-request
    {:uri    (str "/queries/" (name id))
@@ -109,6 +128,8 @@
    ch))
 
 (defn submit-oneoff-query
+  "Submits POST request to execute a custom fabric.ld query. Accepts
+  query spec, result channel and any number of keyword options (querystring params)."
   [q ch & opts]
   (do-request
    {:uri    "/query"
@@ -116,6 +137,12 @@
     :data   {:spec q}
     :method :post}
    ch))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Application state update handlers
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn nav-change
   [route]
@@ -143,6 +170,10 @@
   (set-state! :query-preset id))
 
 (defn set-viz-query
+  "Formats current user query as URL for /queryviz server handler and
+  sets :query-viz-uri in app-state. This value is picked up by
+  queryviz component and used as image src attrib. When image is added
+  to DOM, the browser then executes the request automatically."
   []
   (->> {:spec (:query @app-state) :format "png"}
        (io/->request-data)
@@ -150,7 +181,10 @@
        (set-state! :query-viz-uri))
   (set-state! :user-query-results nil))
 
-(defn prepare-user-query-results
+(defn transform-user-query-results
+  "Helper fn to transform query results for populating the result
+  table component. Inspects returned query spec to handle both
+  grouped/ungrouped results."
   [results]
   (let [grouped (get-in results [:spec :group-by])
         body    (:body results)
@@ -169,6 +203,10 @@
      :body    body}))
 
 (defn submit-user-query
+  "Async handler to submit current user query for execution and then
+  later processing/transformation of results for table display. Also
+  kills query-viz state, thus acting as display toggle between table &
+  graphviz visualization."
   []
   (let [ch (async/chan)]
     (submit-oneoff-query (:query @app-state) ch)
@@ -176,7 +214,7 @@
     (go
       (when-let [results (async/<! ch)]
         (->> results
-             (prepare-user-query-results)
+             (transform-user-query-results)
              (set-state! :user-query-results))))))
 
 (defn set-heatmap-id
@@ -185,7 +223,19 @@
 (defn set-heatmap-key
   [id] (async/put! (:borough-stats-chan @app-state) (keyword id)))
 
+(defn select-borough
+  [id] (set-state! [:boroughs :selected] id))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Async handlers (mainly for app initialization)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn process-borough
+  "Helper fn to transform a single borough query result. Performs map
+  projection of borough's lat/lon polygon points and constructs
+  pre-formatted SVG points, returns transformed map."
   [{:syms [?apoly ?avg ?min ?max ?num ?boroughID ?aname]}]
   (let [poly     (first ?apoly)
         poly     (map f/parse-float (str/split poly #" "))
@@ -202,7 +252,24 @@
      :min      ?min
      :max      ?max}))
 
+(defn async-borough-processor
+  "Called from async-initial-query-processor with response from
+  initial borough query. In a go block transforms borough details and
+  polygons, then triggers aggregate stats computation for heatmap."
+  [results]
+  (go
+    (set-init-state :process-polygons)
+    ;; allow DOM update
+    (async/<! (async/timeout 17))
+    (let [boroughs (map (comp process-borough first val) (:body results))
+          boroughs (into (sorted-map) (zipmap (map :id boroughs) boroughs))]
+      (set-state! :boroughs {:data boroughs})
+      (set-heatmap-key (:heatmap-key @app-state)))))
+
 (defn borough-price-chart
+  "Helper fn to construct the price chart for a single borough. Takes
+  single map entry of [borough-id query-results] and replaces value
+  with generated SVG DOM fragment."
   [[id results]]
   (let [data  (mapv #(% '?price) results)
         len   (count data)
@@ -242,12 +309,16 @@
              (svgadapt/inject-element-attribs svgadapt/key-attrib-injector))]))
 
 (defn async-chart-generator
+  "Takes query results and async channel. In a go-loop, constructs
+  charts for all boroughs and on completion, places `true` on result
+  channel. Updates :init-state-progress value during execution."
   [results done]
   (let [ch (async/chan)]
     (go-loop []
       (if-let [borough (async/<! ch)]
         (do (update-init-state-progress)
             (update-state! :charts conj (borough-price-chart borough))
+            ;; slight delay between iterations to allow DOM updates
             (async/<! (async/timeout 17))
             (recur))
         (async/>! done true)))
@@ -255,6 +326,11 @@
     (async/onto-chan ch results)))
 
 (defn async-borough-stats-processor
+  "Defines sync handler to compute aggregate values for a given
+  heatmap type placed on handler's channel. Fn is called from init-app
+  and returns channel which is stored in app-state atom. Channel is
+  later used by set-heatmap-key handler to trigger new heatmap type
+  and computation in this handler."
   []
   (let [ch (async/chan)]
     (go-loop []
@@ -273,36 +349,32 @@
     ch))
 
 (defn async-initial-query-processor
+  "Async initialization handler. Executes initial boroughs query,
+  trigger result processing, triggers price detail query and then
+  coordinates with aync-chart-processor, finally sets :ready?
+  app-state key to enable full UI."
   []
   (let [ch (async/chan)]
     (go
+      (submit-registered-query :boroughs ch)
       (when-let [resp (async/<! ch)]
-        (let [boroughs (map (comp process-borough first val) (:body resp))
-              boroughs (into (sorted-map) (zipmap (map :id boroughs) boroughs))]
-          (set-state! :boroughs {:data boroughs})
-          (set-heatmap-key (:heatmap-key @app-state))
-          (set-init-state :detail-query)
-          (submit-registered-query :borough-prices ch)
-          (when-let [resp (async/<! ch)]
-            (async-chart-generator (:body resp) ch)
-            (async/<! ch)
-            (set-state! :ready? true)))))
+        (async-borough-processor resp)
+        (submit-registered-query :borough-prices ch)
+        (when-let [resp (async/<! ch)]
+          (async-chart-generator (:body resp) ch)
+          (async/<! ch)
+          (set-state! :app-ready? true))))
     ch))
-
-(defn select-borough
-  [id] (set-state! [:boroughs :selected] id))
 
 (defn init-app
   []
-  (let [init-chan  (async-initial-query-processor)
-        stats-chan (async-borough-stats-processor)]
-    (swap! app-state merge
-           {:query              (get-in query-presets [:boroughs :query])
-            :query-preset       :boroughs
-            :heatmap-id         :yellow-magenta-cyan
-            :heatmap-key        :avg
-            :inited             true
-            :init-state         :init
-            :charts             (sorted-map)
-            :borough-stats-chan stats-chan})
-    (submit-registered-query :boroughs init-chan)))
+  (swap! app-state merge
+         {:query              (get-in query-presets [:boroughs :query])
+          :query-preset       :boroughs
+          :heatmap-id         :yellow-magenta-cyan
+          :heatmap-key        :avg
+          :inited             true
+          :init-state         :init
+          :charts             (sorted-map)
+          :borough-stats-chan (async-borough-stats-processor)})
+  (async-initial-query-processor))

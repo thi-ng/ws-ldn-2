@@ -16,6 +16,7 @@
    [thi.ng.strf.core :as f]))
 
 (def heatmaps
+  "Preset configs of gradient IDs and their direction"
   (sorted-map
    :green-cyan          {:flipped false}
    :blue-cyan           {:flipped false}
@@ -25,6 +26,8 @@
    :yellow-magenta-cyan {:flipped true}))
 
 (defn heatmap-color
+  "Higher order fn. Takes min/max vals of domain range and gradient preset ID.
+  Returns single-arg fn used to compute heatmap color (as CSS string)."
   [min max gradient-id]
   (let [[offset amp fmod phase] (grad/cosine-schemes gradient-id)
         flipped? (-> heatmaps gradient-id :flipped)]
@@ -37,6 +40,7 @@
              (deref))))))
 
 (defn map-overlay
+  "Heatmap tooltip component, displaying details of selected borough."
   [data selected]
   (when selected
     (let [{:keys [centroid name id avg min max num]} (data selected)
@@ -65,6 +69,7 @@
          [70 -20] "sales" {:text-anchor "middle"}))))))
 
 (defn heatmap-polygon
+  "Single polygon component, performs heatmap coloring for non-selected boroughs."
   [sel hover-fn heatmap key]
   (fn [{:keys [id points] :as item}]
     [:polygon
@@ -73,7 +78,8 @@
       :points        points
       :fill          (if (not= sel id) (heatmap (key item)) "#333")}]))
 
-(defn svg-map
+(defn svg-heatmap
+  "Main heatmap component"
   [data selected min max hover heatmap-id heatmap-key]
   (let [heatmap (heatmap-color min max heatmap-id)]
     (svg/svg
@@ -82,6 +88,7 @@
      (map-overlay data selected))))
 
 (defn stats-totals
+  "Total stats table component"
   []
   (let [totals (state/subscribe [:boroughs :totals])]
     (fn []
@@ -125,6 +132,7 @@
                  (into [:div.row {:key (str "stats-row-" i)}] row)))))])))
 
 (defn heatmap-view
+  "Main component for map view/route."
   []
   (let [boroughs    (state/subscribe :boroughs)
         heatmap-id  (state/subscribe :heatmap-id)
@@ -137,17 +145,19 @@
            [:h1 "London heatmap"]]
           [:div.col-xs-3.form-align
            [dd/dropdown
+            "dd-hm-type"
             @heatmap-id
             #(state/set-heatmap-key (utils/event-value-id %))
             state/heatmap-types]]
           [:div.col-xs-3.form-align
            [dd/dropdown
+            "dd-hm-gradient"
             @heatmap-id
             #(state/set-heatmap-id (utils/event-value-id %))
             heatmaps]]]
          [:div.row
           [:div.col-xs-12
-           [svg-map
+           [svg-heatmap
             data selected min max
             state/select-borough
             @heatmap-id

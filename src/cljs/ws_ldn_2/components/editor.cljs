@@ -8,6 +8,10 @@
    [cljsjs.codemirror.mode.clojure]))
 
 (defn cm-editor
+  "CodeMirror react component wrapper. Takes map of component props
+  and map of CM config opts. Props map MUST include an :on-change
+  handler and a :state value, which must be dereferencable (atom or
+  reaction)."
   [props cm-opts]
   (r/create-class
    {:component-did-mount

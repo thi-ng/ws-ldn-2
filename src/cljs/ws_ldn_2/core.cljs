@@ -16,6 +16,7 @@
    [thi.ng.validate.core :as v]))
 
 (def routes
+  "Basic SPA route configuration. See router ns for further options."
   [{:id        :home
     :match     ["home"]
     :component #'viewshome/home
@@ -30,17 +31,18 @@
     :label     "Query editor"}])
 
 (defn view-wrapper
+  "Shared component wrapper for all routes, includes navbar."
   [route]
   (let [route @route]
     [:div
      [nav/nav-bar routes route]
      [(:component route) route]]))
 
-(defn main-panel
+(defn app-component
   "Application main component."
   []
   (let [route      (reaction (:curr-route @state/app-state))
-        ready?     (reaction (:ready? @state/app-state))
+        ready?     (reaction (:app-ready? @state/app-state))
         init-state (reaction (:init-state @state/app-state))]
     (fn []
       (if (and @ready? @route)
@@ -49,6 +51,7 @@
           [:div [:h1 (state/init-states id) (when progress (str " " progress "/" total))]])))))
 
 (defn start-router
+  "Starts SPA router, called from main fn."
   []
   (router/start!
    routes
@@ -58,14 +61,16 @@
    (constantly nil)))
 
 (defn main
-  "Application main entry point, kicks off React component lifecycle."
+  "Application main entry point, initializes app state and kicks off
+  React component lifecycle."
   []
   (when-not (:inited @state/app-state)
     (state/init-app))
   (start-router)
-  (r/render-component [main-panel] (.-body js/document)))
+  (r/render-component [app-component] (.-body js/document)))
 
 (defn on-js-reload
+  "Called each time fighweel has reloaded code."
   [] (debug :reloaded))
 
 (main)

@@ -10,6 +10,7 @@
    [ring.util.mime-type :as mime]
    [clojure.java.shell :refer [sh]]
    [clojure.java.io :as io]
+   [clojure.pprint :refer [pprint]]
    [clojure.tools.namespace.repl :refer (refresh)]
    [taoensso.timbre :refer [debug info warn]])
   (:import
@@ -75,11 +76,11 @@
                 (ld/default-config)
                 {:graph   {:import ^:replace [[:ntriples (gzip-input-stream "data/london-boroughs.nt.gz")]
                                               [:edn      (gzip-input-stream "data/sales-2013.edn.gz")]]}
-                 :queries {:specs (read-string (slurp (io/resource "data/queries.edn")))}
-                 :handler {:inject-routes [queryviz-handler homepage-redirect]}
-                 :log     {:fn (fn [_ _] (fn [_]))}})]
+                 :queries {:specs            (read-string (slurp (io/resource "data/queries.edn")))}
+                 :handler {:inject-routes    [queryviz-handler homepage-redirect]}
+                 :log     {:fn               (constantly (fn [_]))}})]
     (taoensso.timbre/set-level! :info)
-    (clojure.pprint/pprint config)
+    (pprint config)
     (alter-var-root #'system (constantly (ld/make-system config)))))
 
 (defn start

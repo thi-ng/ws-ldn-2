@@ -46,5 +46,3 @@
 
 ;; (zipmap (range) (take (count fns) (repeatedly ...)))
 ;; (partition 3 (interleave (range) (repeatedly a/chan) [f1 f2 f3]))
-
-()
