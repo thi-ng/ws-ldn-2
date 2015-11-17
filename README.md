@@ -38,7 +38,7 @@ cd ws-ldn-2
 lein trampoline run
 
 # open another terminal using same directory
-lein fighweel dev
+lein figwheel dev
 
 # once fabric server is running CLJS compilation is complete...
 # open http://localhost:8000 in your browser
