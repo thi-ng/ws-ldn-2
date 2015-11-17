@@ -4,6 +4,11 @@
 
 This repo contains a subset of commented examples created during the workshop.
 
+## Report
+
+A slightly wordy report with lots of references can be found here:
+https://medium.com/@thi.ng/workshop-report-building-linked-data-heatmaps-with-clojurescript-thi-ng-102e0581225c
+
 ## Status
 
 This repo is still WIP and is missing source comments and corrections in the other documentation file below.
