@@ -16,7 +16,12 @@ We used geographic data from the
 converted housing datasets from the
 [London Data Store](http://data.london.gov.uk/dataset/average-house-prices-borough)
 to RDF in order to build heatmap visualizations of the London housing
-situation:
+situation.
+
+The project also is a nice demo combining features of several
+libraries of the thi.ng collection, incl.
+[thi.ng/fabric](http://thi.ng/fabric), [thi.ng/geom](thi.ng/geom),
+[thi.ng/color](http://thi.ng/color)...
 
 This heatmap shows average property sale prices per borough in 2013/14:
 
