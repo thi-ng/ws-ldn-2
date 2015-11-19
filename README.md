@@ -51,10 +51,12 @@ lein figwheel dev
 
 ## CLJS build w/ advanced optimizations
 
-Run the following command to build the CLJS sources with advanced optimizations:
+Run the following command to build the CLJS sources with advanced
+optimizations. The `with-profile prod` ensures that all logging
+messages are elided from the source at compile time.
 
 ```
-lein do clean, cljsbuild once min
+lein with-profile prod do clean, cljsbuild once min
 ```
 
 ## License
